@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#085041">
+<title>Hutang Puasa Family Sync v4.6 Filter & Fix</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --teal:#0F6E56;--teal-light:#E1F5EE;--teal-mid:#1D9E75;--teal-dark:#085041;
+  --amber:#BA7517;--bg:#F7F9F8;--card:#FFFFFF;--text:#1a1a1a;--sub:#6B7280;--border:#E5EBE8;
+  --blue:#3B82F6;--red:#ef4444;
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;overflow:hidden}
+.app{max-width:480px;margin:0 auto;height:100vh;display:flex;flex-direction:column;background:var(--bg);position:relative}
+
+.header{background:linear-gradient(135deg,#085041 0%,#1D9E75 60%,#0F6E56 100%);padding:15px 20px;flex-shrink:0}
+.header-top{display:flex;justify-content:center;align-items:center;margin-bottom:10px}
+.bismillah{font-family:'Amiri',serif;color:rgba(255,255,255,0.9);font-size:22px;text-align:center}
+.header-title{color:#fff;font-size:18px;font-weight:700;text-align:center;margin-bottom:10px}
+
+.stats-container{margin-top:10px; display:flex; flex-direction:column; gap:6px; max-height: 120px; overflow-y: auto; padding-right:5px}
+.prog-row{background:rgba(255,255,255,0.12); border-radius:10px; padding:6px 10px; color:#fff}
+.prog-info{display:flex; justify-content:space-between; font-size:10px; margin-bottom:3px; font-weight:600}
+.prog-detail{display:flex; gap:8px; font-size:9px; opacity:0.9; margin-top:2px}
+.prog-bar-bg{height:5px; background:rgba(255,255,255,0.2); border-radius:10px; overflow:hidden}
+.prog-bar-fill{height:100%; background:#fff; border-radius:10px; transition:width 0.5s}
+
+.tabs{display:flex;margin:10px 14px 0;background:var(--card);border-radius:12px;padding:3px;border:1px solid var(--border);flex-shrink:0; overflow-x:auto}
+.tab{flex:1;padding:8px 5px;text-align:center;border-radius:9px;font-size:10px;font-weight:600;cursor:pointer;color:var(--sub); min-width:70px}
+.tab.active{background:var(--teal);color:#fff}
+
+.content{flex:1;overflow-y:auto;padding:15px;padding-bottom:100px}
+.filter-box{display:flex; gap:8px; margin-bottom:15px; background:#fff; padding:10px; border-radius:10px; border:1px solid var(--border)}
+.filter-box select{padding:5px; font-size:11px; margin-top:0}
+
+.log-item{background:var(--card);border-radius:14px;padding:12px;border:1px solid var(--border);margin-bottom:10px;position:relative}
+.badge-name{position:absolute;top:12px;right:12px;font-size:9px;padding:3px 8px;border-radius:20px;font-weight:700; background:var(--teal-light); color:var(--teal)}
+
+.log-actions{display:flex;gap:8px;margin-top:10px}
+.log-btn{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);font-size:11px;font-weight:700;cursor:pointer;background:#fff}
+.btn-done{background:var(--teal);color:#fff;border:none}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;padding:10px;max-width:480px;margin:0 auto}
+.nav-item{flex:1;text-align:center;font-size:10px;font-weight:700;color:var(--sub);cursor:pointer}
+.nav-item.active{color:var(--teal)}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:#fff;border-radius:16px;padding:20px;width:100%;max-width:340px;max-height:85vh;overflow-y:auto}
+
+input, select, textarea{width:100%;padding:10px;margin-top:5px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px}
+label{font-size:11px;font-weight:700;color:var(--sub);margin-top:10px;display:block}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);backdrop-filter:blur(5px);color:#fff;padding:10px 20px;border-radius:25px;font-size:12px;display:none;z-index:2000;box-shadow:0 4px 15px rgba(0,0,0,0.2);animation:fadeInUp 0.3s ease}
+
+@keyframes fadeInUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* Chat Styles */
+.chat-container{display:flex;flex-direction:column;height:100%; min-height: 300px}
+.chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px 0}
+.msg{max-width:85%;padding:8px 12px;border-radius:12px;font-size:13px; line-height:1.4; position:relative; word-wrap: break-word}
+.msg.me{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:2px}
+.msg.other{align-self:flex-start;background:#e5e7eb;color:var(--text);border-bottom-left-radius:2px}
+.emoji-picker{display:grid; grid-template-columns: repeat(6, 1fr); gap:8px; font-size:20px; text-align:center; padding:10px}
+.emoji-btn{cursor:pointer; padding:5px; border-radius:5px}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+    </div>
+    <div class="header-title">🕌 Hutang Puasa Apps</div>
+    <div class="stats-container" id="dashboard-stats"></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-catat" onclick="setTab('catat')">✏️ Catat</div>
+    <div class="tab" id="tab-log" onclick="setTab('log')">📋 Riwayat</div>
+    <div class="tab" id="tab-activity" onclick="setTab('activity')">🕒 Log</div>
+    <div class="tab" id="tab-chat" onclick="setTab('chat')">💬 Chat</div>
+    <div class="tab" id="tab-sync" onclick="setTab('sync')">☁️ Cloud</div>
+  </div>
+
+  <div class="content" id="main-content"></div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="setTab('catat')">🏠 Home</div>
+    <div class="nav-item" onclick="exportToExcel()">📊 Excel</div>
+    <div class="nav-item" onclick="setTab('sync')">⚙️ Settings</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal-box" id="modal-content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyDDLpfpWzmwAS5-oeFW8jyq4Y7YZsVo4-g",
+  authDomain: "hutang-puasa.firebaseapp.com",
+  databaseURL: "https://hutang-puasa-default-rtdb.firebaseio.com",
+  projectId: "hutang-puasa",
+  storageBucket: "hutang-puasa.firebasestorage.app",
+  messagingSenderId: "889099979356",
+  appId: "1:889099979356:web:9b1481ec46da4425a57499"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// APP STATE
+let records = JSON.parse(localStorage.getItem('hp_v4_data') || '[]');
+let profiles = JSON.parse(localStorage.getItem('hp_profiles') || '["Papa", "Ibu"]');
+let activities = JSON.parse(localStorage.getItem('hp_activities') || '[]');
+let syncId = localStorage.getItem('hp_sync_id') || '';
+let myName = localStorage.getItem('hp_user_name') || 'Papa';
+let currentTab = 'catat';
+
+// FILTER STATE
+let filterUser = 'all';
+let filterStatus = 'all';
+
+// AUTH STATE
+const ADMIN_PIN = "356652"; 
+let isAdminAuthenticated = localStorage.getItem('hp_admin_auth') === 'true';
+
+// LOGIC UTILS
+function save(actionDesc) {
+    localStorage.setItem('hp_v4_data', JSON.stringify(records));
+    localStorage.setItem('hp_profiles', JSON.stringify(profiles));
+    if(actionDesc) {
+        const log = { user: myName, action: actionDesc, time: Date.now() };
+        activities.unshift(log);
+        if(activities.length > 500) activities.pop();
+        localStorage.setItem('hp_activities', JSON.stringify(activities));
+    }
+    if (syncId) db.ref('sync/' + syncId + '/data').set({ records, profiles, activities });
+    updateStats();
+}
+
+function updateStats() {
+    const dash = document.getElementById('dashboard-stats');
+    if(!dash) return;
+    let html = '';
+    profiles.forEach(p => {
+        const total = records.filter(r => r.owner === p).length;
+        const lunas = records.filter(r => r.owner === p && r.status === 'done').length;
+        const hutang = total - lunas;
+        const persen = total > 0 ? Math.round((lunas / total) * 100) : 0;
+        html += `<div class="prog-row"><div class="prog-info"><span>${p}</span><span>${persen}%</span></div><div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${persen}%"></div></div><div class="prog-detail"><span>Hutang: ${total}</span> | <span>Lunas: ${lunas}</span> | <span style="font-weight:700">Sisa: ${hutang}</span></div></div>`;
+    });
+    dash.innerHTML = html;
+}
+
+function setTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    
+    const targetTab = document.getElementById('tab-' + tab);
+    if(targetTab) targetTab.classList.add('active');
+    
+    renderContent();
+}
+
+function renderContent() {
+    const c = document.getElementById('main-content');
+    c.innerHTML = ''; // Clear content
+
+    if (currentTab === 'catat') {
+        c.innerHTML = `<div style="background:#fff; padding:15px; border-radius:14px; border:1px solid var(--border)"><h4>Catat Hutang Baru</h4><label>Milik Siapa?</label><select id="f-owner">${profiles.map(p => `<option value="${p}" ${myName === p ? 'selected' : ''}>${p}</option>`).join('')}</select><label>Tanggal Terhutang</label><input type="date" id="f-date" value="${new Date().toISOString().split('T')[0]}"><label>Tahun Ramadan</label><input type="number" id="f-year" value="${new Date().getFullYear()}"><label>Catatan (Opsional)</label><textarea id="f-note" placeholder="Alasan berhalangan..."></textarea><button onclick="preAddRecord()" style="width:100%; padding:15px; margin-top:20px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-weight:700">Simpan Catatan</button></div>`;
+    } 
+    
+    else if (currentTab === 'log') {
+        // FILTER UI
+        let filterHtml = `
+            <div class="filter-box">
+                <select onchange="updateFilter('user', this.value)">
+                    <option value="all">Semua User</option>
+                    ${profiles.map(p => `<option value="${p}" ${filterUser===p?'selected':''}>${p}</option>`).join('')}
+                </select>
+                <select onchange="updateFilter('status', this.value)">
+                    <option value="all" ${filterStatus==='all'?'selected':''}>Semua Status</option>
+                    <option value="hutang" ${filterStatus==='hutang'?'selected':''}>Hutang</option>
+                    <option value="done" ${filterStatus==='done'?'selected':''}>Lunas</option>
+                </select>
+            </div>`;
+        
+        let filtered = records.filter(r => {
+            const matchUser = filterUser === 'all' || r.owner === filterUser;
+            const matchStatus = filterStatus === 'all' || r.status === filterStatus;
+            return matchUser && matchStatus;
+        });
+
+        let listHtml = filtered.sort((a,b) => b.id - a.id).map(r => `
+            <div class="log-item" style="border-left: 4px solid ${r.status==='done'?'var(--teal)':'var(--amber)'}">
+                <span class="badge-name">${r.owner}</span>
+                <div style="font-weight:700; color:var(--teal)">${r.status==='done'?'✅ LUNAS':'⚠️ HUTANG'}</div>
+                <div style="font-size:12px; margin-top:4px"><b>Tgl Hutang:</b> ${formatDate(r.date)}</div>
+                ${r.status==='done' ? `<div style="font-size:12px; color:var(--teal)"><b>Tgl Lunas:</b> ${formatDate(r.finishDate)}</div>` : ''}
+                <div style="font-size:11px; color:var(--sub)">Ramadan ${r.year}</div>
+                ${r.note ? `<div style="font-size:11px; font-style:italic; margin-top:5px; padding:5px; background:#f9f9f9; border-radius:5px">"${r.note}"</div>` : ''}
+                <div class="log-actions">
+                    ${r.status==='hutang' ? `<button class="log-btn btn-done" onclick="preOpenFinish(${r.id})">Selesaikan</button>` : ''}
+                    <button class="log-btn" style="color:var(--blue)" onclick="preEdit(${r.id})">Edit Data</button>
+                    <button class="log-btn" style="color:red" onclick="preDelete(${r.id})">Hapus</button>
+                </div>
+            </div>`).join('');
+            
+        c.innerHTML = filterHtml + (listHtml || '<center style="color:#999; margin-top:40px">Tidak ada data ditemukan</center>');
+    } 
+    
+    else if (currentTab === 'activity') {
+        let logHtml = activities.map(a => `<div style="font-size:12px; padding:10px; border-bottom:1px solid var(--border)"><span style="font-weight:700; color:var(--teal)">${a.user}</span> ${a.action}<div style="font-size:10px; color:#999">${new Date(a.time).toLocaleString('id-ID')}</div></div>`).join('');
+        c.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px"><h4>Log Aktivitas</h4><button onclick="exportLogs()" style="font-size:10px; padding:5px 10px; background:var(--blue); color:#fff; border:none; border-radius:5px">Export Logs</button></div>` + (logHtml || '<center style="color:#999">Kosong</center>');
+    } 
+    
+    else if (currentTab === 'chat') {
+        if(!syncId) { 
+            c.innerHTML = '<center style="padding:40px">Set Sync ID dulu di tab Cloud untuk aktifkan chat.</center>'; 
+            return; 
+        }
+        c.innerHTML = `
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-msgs">
+                    <center style="color:#999; padding:20px">Menghubungkan ke chat...</center>
+                </div>
+                <div id="emoji-panel" style="display:none; background:#fff; border:1px solid var(--border); border-radius:10px; margin-bottom:5px">
+                    <div class="emoji-picker">${emojis.map(e => `<span class="emoji-btn" onclick="insertEmoji('${e}')">${e}</span>`).join('')}</div>
+                </div>
+                <div class="chat-input-area" style="display:flex; gap:8px; padding-top:10px">
+                    <button onclick="toggleEmoji()" style="background:#eee; border:none; padding:10px; border-radius:10px">😊</button>
+                    <input type="text" id="chat-input" placeholder="Pesan sebagai ${myName}..." onkeypress="if(event.key==='Enter') sendChat()">
+                    <button onclick="sendChat()" style="background:var(--teal); color:#fff; border:none; padding:10px 15px; border-radius:10px; font-weight:700">Kirim</button>
+                </div>
+            </div>`;
+        initChatListener();
+    } 
+    
+    else if (currentTab === 'sync') {
+        c.innerHTML = `<div style="background:#fff; padding:15px; border-radius:14px; border:1px solid var(--border); margin-bottom:15px"><label>ID Keluarga (Sync ID)</label><input type="text" id="sync-input" value="${syncId}"><label>Nama Anda</label><select id="name-input">${profiles.map(p => `<option value="${p}" ${myName === p ? 'selected' : ''}>${p}</option>`).join('')}</select><button onclick="preApplySync()" style="width:100%; padding:15px; margin-top:20px; background:var(--blue); color:#fff; border:none; border-radius:10px; font-weight:700">Update Settings</button>${isAdminAuthenticated ? `<button onclick="logoutAdmin()" style="width:100%; padding:10px; margin-top:10px; background:var(--red); color:#fff; border:none; border-radius:10px; font-weight:700; font-size:11px">🔒 Logout Admin</button>` : ''}</div><div style="background:#fff; padding:15px; border-radius:14px; border:1px solid var(--border)"><h4>Kelola Profil</h4><div id="prof-list" style="margin:10px 0">${profiles.map(p => `<div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #eee"><span>${p}</span> <span onclick="preRemoveProfile('${p}')" style="color:red; cursor:pointer">Hapus</span></div>`).join('')}</div><input type="text" id="new-prof-name" placeholder="Nama baru..."><button onclick="addProfile()" style="width:100%; padding:10px; margin-top:10px; border:1px solid var(--teal); color:var(--teal); background:none; border-radius:8px; font-weight:700">+ Tambah Profil</button></div>`;
+    }
+}
+
+// FILTER LOGIC
+function updateFilter(type, val) {
+    if(type === 'user') filterUser = val;
+    if(type === 'status') filterStatus = val;
+    renderContent();
+}
+
+// CHAT REFIX
+function sendChat() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if(!msg || !syncId) return;
+    
+    db.ref('sync/' + syncId + '/chats').push({
+        sender: myName,
+        text: msg,
+        time: Date.now()
+    }).then(() => {
+        input.value = '';
+        document.getElementById('emoji-panel').style.display = 'none';
+    }).catch(err => {
+        alert("Gagal mengirim pesan. Cek koneksi.");
+    });
+}
+
+function initChatListener() {
+    if(!syncId) return;
+    const box = document.getElementById('chat-msgs');
+    
+    // Matikan listener lama jika ada
+    db.ref('sync/' + syncId + '/chats').off();
+    
+    db.ref('sync/' + syncId + '/chats').limitToLast(50).on('value', (s) => {
+        if(!box) return;
+        let h = '';
+        if(!s.exists()) {
+            h = '<center style="color:#999; padding:20px">Belum ada obrolan. Mulai menyapa!</center>';
+        } else {
+            s.forEach(child => {
+                const m = child.val();
+                const side = m.sender === myName ? 'me' : 'other';
+                h += `
+                    <div class="msg ${side}">
+                        <div style="font-size:9px; font-weight:700; opacity:0.8; margin-bottom:2px">${m.sender}</div>
+                        ${m.text}
+                        <div style="font-size:8px; opacity:0.6; text-align:right; margin-top:2px">${new Date(m.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    </div>`;
+            });
+        }
+        box.innerHTML = h;
+        box.scrollTop = box.scrollHeight;
+    });
+}
+
+// ADMIN & RECORDS LOGIC
+function requestAdminAccess(callback) {
+    if (isAdminAuthenticated) { callback(); return; }
+    const pin = prompt("Konfirmasi PIN Admin (Papa/Ibu):");
+    if (pin === ADMIN_PIN) {
+        isAdminAuthenticated = true;
+        localStorage.setItem('hp_admin_auth', 'true');
+        showToast("Akses Terverifikasi! ✅");
+        callback();
+    } else { alert("PIN Salah!"); }
+}
+
+function logoutAdmin() {
+    isAdminAuthenticated = false;
+    localStorage.removeItem('hp_admin_auth');
+    showToast("Sesi Admin Dihapus! 🔒");
+    renderContent();
+}
+
+function preAddRecord() {
+    const owner = document.getElementById('f-owner').value;
+    if (owner === 'Papa' || owner === 'Ibu') requestAdminAccess(addRecord); else addRecord();
+}
+function addRecord() {
+    const owner = document.getElementById('f-owner').value;
+    const date = document.getElementById('f-date').value;
+    records.push({ id: Date.now(), owner, date, year: document.getElementById('f-year').value, note: document.getElementById('f-note').value, status: 'hutang', finishDate: null });
+    save(`menambah hutang baru untuk ${owner} tanggal ${date}`);
+    setTab('log'); showToast("Berhasil dicatat!");
+}
+
+function preDelete(id) {
+    const r = records.find(x => x.id === id);
+    if (r.owner === 'Papa' || r.owner === 'Ibu') requestAdminAccess(() => deleteRecord(id)); else deleteRecord(id);
+}
+function deleteRecord(id) {
+    const r = records.find(x => x.id === id);
+    if(confirm(`Hapus data ${r.owner}?`)) {
+        records = records.filter(x => x.id !== id);
+        save(`menghapus data hutang milik ${r.owner} (Tgl: ${r.date})`);
+        renderContent();
+    }
+}
+
+function preEdit(id) {
+    const r = records.find(x => x.id === id);
+    if (r.owner === 'Papa' || r.owner === 'Ibu') requestAdminAccess(() => openEditModal(id)); else openEditModal(id);
+}
+
+function openEditModal(id) {
+    const r = records.find(x => x.id === id);
+    const m = document.getElementById('modal'); m.style.display = 'flex';
+    let content = `<h4>Edit Data ${r.owner}</h4>`;
+    if (r.status === 'hutang') {
+        content += `<label>Edit Tanggal Hutang</label><input type="date" id="e-date" value="${r.date}"><label>Tahun Ramadan</label><input type="number" id="e-year" value="${r.year}">`;
+    } else {
+        content += `<label>Status Pelunasan</label><select id="e-status"><option value="done">Tetap Lunas</option><option value="hutang">Kembalikan ke Belum Lunas</option></select><label>Edit Tanggal Pelunasan</label><input type="date" id="e-finish" value="${r.finishDate || r.date}">`;
+    }
+    content += `<label>Catatan</label><textarea id="e-note">${r.note || ''}</textarea><button onclick="saveEdit(${id})" style="width:100%; padding:15px; margin-top:20px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-weight:700">Simpan Perubahan</button><button onclick="closeModal()" style="width:100%; margin-top:10px; border:none; background:none; color:var(--sub)">Batal</button>`;
+    document.getElementById('modal-content').innerHTML = content;
+}
+
+function saveEdit(id) {
+    const idx = records.findIndex(r => r.id === id);
+    const old = {...records[idx]};
+    if (old.status === 'hutang') {
+        records[idx].date = document.getElementById('e-date').value;
+        records[idx].year = document.getElementById('e-year').value;
+    } else {
+        records[idx].status = document.getElementById('e-status').value;
+        records[idx].finishDate = document.getElementById('e-finish').value;
+        if(records[idx].status === 'hutang') records[idx].finishDate = null;
+    }
+    records[idx].note = document.getElementById('e-note').value;
+    save(`mengubah data ${old.owner} (Status: ${old.status} -> ${records[idx].status})`);
+    closeModal(); renderContent(); showToast("Berhasil diupdate!");
+}
+
+function preOpenFinish(id) {
+    const r = records.find(x => x.id === id);
+    if (r.owner === 'Papa' || r.owner === 'Ibu') requestAdminAccess(() => openFinishModal(id)); else openFinishModal(id);
+}
+function openFinishModal(id) {
+    const m = document.getElementById('modal'); m.style.display = 'flex';
+    document.getElementById('modal-content').innerHTML = `<h4>Selesaikan Hutang</h4><label>Tanggal Pelunasan</label><input type="date" id="f-finish-date" value="${new Date().toISOString().split('T')[0]}"><button onclick="markDone(${id})" style="width:100%; padding:15px; margin-top:20px; background:var(--teal); color:#fff; border:none; border-radius:10px; font-weight:700">Konfirmasi Lunas</button><button onclick="closeModal()" style="width:100%; margin-top:10px; border:none; background:none; color:var(--sub)">Batal</button>`;
+}
+function markDone(id) {
+    const idx = records.findIndex(r => r.id === id);
+    const fDate = document.getElementById('f-finish-date').value;
+    records[idx].status = 'done';
+    records[idx].finishDate = fDate;
+    save(`melunasi hutang ${records[idx].owner} (Lunas tgl: ${fDate})`);
+    closeModal(); renderContent(); showToast("Alhamdulillah, lunas!");
+}
+
+// SYNC & PROFILES
+function preApplySync() {
+    const newName = document.getElementById('name-input').value;
+    if (newName === 'Papa' || newName === 'Ibu') requestAdminAccess(applySync); else applySync();
+}
+function applySync() {
+    syncId = document.getElementById('sync-input').value.trim();
+    myName = document.getElementById('name-input').value;
+    localStorage.setItem('hp_sync_id', syncId);
+    localStorage.setItem('hp_user_name', myName);
+    if (syncId) {
+        db.ref('sync/' + syncId + '/data').on('value', (s) => {
+            if(s.val()) { 
+                records = s.val().records || []; 
+                profiles = s.val().profiles || ["Papa", "Ibu"]; 
+                activities = s.val().activities || []; 
+                updateStats(); 
+                if(currentTab !== 'chat') renderContent(); 
+            }
+        });
+    }
+    showToast("Pengaturan Disimpan!");
+}
+function preRemoveProfile(n) { if(n==='Papa'||n==='Ibu') requestAdminAccess(()=>removeProfile(n)); else removeProfile(n); }
+function removeProfile(n) { if(confirm("Hapus "+n+"?")) { profiles=profiles.filter(p=>p!==n); save(`menghapus profil: ${n}`); renderContent(); } }
+function addProfile() {
+    const n = document.getElementById('new-prof-name').value.trim();
+    if(n && !profiles.includes(n)) { profiles.push(n); save(`menambah profil baru: ${n}`); renderContent(); }
+}
+
+// UTILS
+function exportToExcel() {
+    const data = records.map(r => ({ "Nama": r.owner, "Tgl Hutang": r.date, "Status": r.status.toUpperCase(), "Tgl Lunas": r.finishDate || '-', "Catatan": r.note || '' }));
+    const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "Hutang_Puasa_Family.xlsx");
+}
+function exportLogs() {
+    const data = activities.map(a => ({ "Waktu": new Date(a.time).toLocaleString(), "User": a.user, "Aksi": a.action }));
+    const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Logs"); XLSX.writeFile(wb, "Activity_Logs.xlsx");
+}
+function formatDate(d) { return d ? new Date(d).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}) : '-'; }
+function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+function toggleEmoji() { const p = document.getElementById('emoji-panel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
+function insertEmoji(e) { document.getElementById('chat-input').value += e; }
+
+const emojis = ["😊","😇","🙏","👍","✨","🌙","⭐","🕋","🕌","📅","✅","❌","💪","❤️","🤲","😅","😭","🥘","🥤","🍰"];
+
+// INIT
+updateStats(); renderContent(); if(syncId) applySync();
+</script>
+</body>
+</html>
