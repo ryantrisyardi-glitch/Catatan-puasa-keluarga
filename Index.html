@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#085041">
+<title>Hutang Puasa Family v5</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+/* ===== THEMES ===== */
+:root,
+[data-theme="green"] {
+  --primary:#0F6E56;--primary-mid:#1D9E75;--primary-dark:#085041;--primary-light:#E1F5EE;
+  --header-g1:#085041;--header-g2:#1D9E75;--header-g3:#0F6E56;
+  --amber:#BA7517;--amber-light:#FAEEDA;
+  --bg:#F7F9F8;--card:#FFFFFF;--text:#1a1a1a;--sub:#6B7280;--border:#E5EBE8;
+  --input-bg:#FAFAFA;--blue:#3B82F6;--red:#ef4444;
+  --msg-me-bg:#0F6E56;--msg-other-bg:#e5e7eb;--msg-other-text:#1a1a1a;
+  --tab-active-text:#fff;
+}
+[data-theme="dark"] {
+  --primary:#1D9E75;--primary-mid:#1D9E75;--primary-dark:#085041;--primary-light:#0f2e23;
+  --header-g1:#0a1a14;--header-g2:#0f2e23;--header-g3:#0a1a14;
+  --amber:#EF9F27;--amber-light:#2a1f07;
+  --bg:#0d1117;--card:#161b22;--text:#e6edf3;--sub:#8b949e;--border:#30363d;
+  --input-bg:#0d1117;--blue:#58a6ff;--red:#f85149;
+  --msg-me-bg:#1D9E75;--msg-other-bg:#21262d;--msg-other-text:#e6edf3;
+  --tab-active-text:#fff;
+}
+[data-theme="pink"] {
+  --primary:#c0447a;--primary-mid:#e05f96;--primary-dark:#9a3261;--primary-light:#fce8f1;
+  --header-g1:#9a3261;--header-g2:#e05f96;--header-g3:#c0447a;
+  --amber:#d97706;--amber-light:#fff8e1;
+  --bg:#fdf4f8;--card:#FFFFFF;--text:#2d1a22;--sub:#8b5a72;--border:#f3cfe1;
+  --input-bg:#fef9fb;--blue:#8b5cf6;--red:#ef4444;
+  --msg-me-bg:#c0447a;--msg-other-bg:#f5e6f0;--msg-other-text:#2d1a22;
+  --tab-active-text:#fff;
+}
+[data-theme="ocean"] {
+  --primary:#1a6bbd;--primary-mid:#2d84d4;--primary-dark:#124e8a;--primary-light:#deeeff;
+  --header-g1:#0e3d6e;--header-g2:#1a6bbd;--header-g3:#124e8a;
+  --amber:#e07b00;--amber-light:#fff3dc;
+  --bg:#f0f6fc;--card:#FFFFFF;--text:#0d1117;--sub:#57606a;--border:#d0d7de;
+  --input-bg:#f6f8fa;--blue:#0969da;--red:#cf222e;
+  --msg-me-bg:#1a6bbd;--msg-other-bg:#eaf1fb;--msg-other-text:#0d1117;
+  --tab-active-text:#fff;
+}
+[data-theme="sand"] {
+  --primary:#8B5E3C;--primary-mid:#A97450;--primary-dark:#6B4427;--primary-light:#F5EBE0;
+  --header-g1:#5C3D24;--header-g2:#A97450;--header-g3:#7A4D30;
+  --amber:#C97C26;--amber-light:#FFF3DC;
+  --bg:#FAF6F1;--card:#FFFFFF;--text:#1a1208;--sub:#7D6050;--border:#E8D8C8;
+  --input-bg:#FDF9F5;--blue:#4A7AB5;--red:#C0392B;
+  --msg-me-bg:#8B5E3C;--msg-other-bg:#F2E8DF;--msg-other-text:#1a1208;
+  --tab-active-text:#fff;
+}
+
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;overflow:hidden;transition:background 0.3s,color 0.3s}
+.app{max-width:480px;margin:0 auto;height:100vh;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,var(--header-g1) 0%,var(--header-g2) 60%,var(--header-g3) 100%);padding:12px 16px;flex-shrink:0;transition:background 0.3s}
+.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.bismillah{font-family:'Amiri',serif;color:rgba(255,255,255,0.9);font-size:18px}
+.header-user-pill{background:rgba(255,255,255,0.2);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,0.3)}
+.header-title{color:#fff;font-size:16px;font-weight:700;text-align:center;margin-bottom:8px}
+.stats-container{display:flex;flex-direction:column;gap:5px;max-height:110px;overflow-y:auto}
+.prog-row{background:rgba(255,255,255,0.12);border-radius:9px;padding:6px 10px;color:#fff}
+.prog-info{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;font-weight:600}
+.prog-detail{display:flex;gap:8px;font-size:9px;opacity:0.85;margin-top:2px}
+.prog-bar-bg{height:5px;background:rgba(255,255,255,0.2);border-radius:10px;overflow:hidden}
+.prog-bar-fill{height:100%;background:#fff;border-radius:10px;transition:width 0.5s}
+
+/* TABS */
+.tabs{display:flex;margin:8px 12px 0;background:var(--card);border-radius:12px;padding:3px;border:1px solid var(--border);flex-shrink:0;overflow-x:auto;gap:2px;transition:background 0.3s,border 0.3s}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1;padding:7px 4px;text-align:center;border-radius:9px;font-size:10px;font-weight:600;cursor:pointer;color:var(--sub);white-space:nowrap;min-width:60px;position:relative;transition:all 0.2s}
+.tab.active{background:var(--primary);color:var(--tab-active-text)}
+.unread-badge{position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 2px}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;padding:10px 12px;padding-bottom:80px;transition:background 0.3s}
+.content::-webkit-scrollbar{width:3px}
+.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* BOTTOM NAV */
+.bottom-nav{background:var(--card);border-top:1px solid var(--border);display:flex;padding:8px 0 env(safe-area-inset-bottom,8px);flex-shrink:0;transition:background 0.3s,border 0.3s}
+.nav-item{flex:1;text-align:center;font-size:10px;font-weight:700;color:var(--sub);cursor:pointer;padding:4px 0}
+.nav-item.active{color:var(--primary)}
+
+/* CARDS */
+.card{background:var(--card);border-radius:14px;padding:14px;border:1px solid var(--border);margin-bottom:12px;transition:background 0.3s,border 0.3s}
+.filter-box{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filter-box select{flex:1;min-width:100px;padding:7px 8px;font-size:11px;margin-top:0;background:var(--input-bg);color:var(--text);border-color:var(--border)}
+
+/* SORT ROW */
+.sort-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--sub)}
+.sort-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:10px;font-weight:600;cursor:pointer;color:var(--sub);transition:all 0.2s;font-family:inherit}
+.sort-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+/* LOG ITEMS */
+.log-item{background:var(--card);border-radius:13px;padding:12px;border:1px solid var(--border);margin-bottom:8px;position:relative;transition:background 0.3s,border 0.3s}
+.badge-name{position:absolute;top:12px;right:12px;font-size:9px;padding:3px 8px;border-radius:20px;font-weight:700;background:var(--primary-light);color:var(--primary)}
+.log-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.log-btn{flex:1;min-width:70px;padding:7px 6px;border-radius:8px;border:1px solid var(--border);font-size:10px;font-weight:700;cursor:pointer;background:var(--card);color:var(--sub);font-family:inherit;transition:all 0.2s}
+.btn-done{background:var(--primary);color:#fff;border:none}
+
+/* INPUTS */
+input,select,textarea{width:100%;padding:9px 10px;margin-top:5px;border:1.5px solid var(--border);border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;background:var(--input-bg);color:var(--text);outline:none;transition:border 0.2s,background 0.3s}
+input:focus,select:focus,textarea:focus{border-color:var(--primary)}
+textarea{resize:none;height:64px}
+label{font-size:11px;font-weight:700;color:var(--sub);margin-top:10px;display:block}
+h4{color:var(--text);font-size:14px;font-weight:700}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1000;display:none;align-items:flex-end;justify-content:center}
+.modal-box{background:var(--card);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));width:100%;max-width:480px;max-height:85vh;overflow-y:auto;color:var(--text)}
+
+/* TOAST */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:10px 20px;border-radius:25px;font-size:12px;display:none;z-index:2000;white-space:nowrap;max-width:90%}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 240px);min-height:300px}
+.chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.chat-messages::-webkit-scrollbar{width:2px}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border)}
+.msg{max-width:82%;padding:8px 12px;border-radius:14px;font-size:13px;line-height:1.45;position:relative;word-wrap:break-word}
+.msg.me{align-self:flex-end;background:var(--msg-me-bg);color:#fff;border-bottom-right-radius:3px}
+.msg.other{align-self:flex-start;background:var(--msg-other-bg);color:var(--msg-other-text);border-bottom-left-radius:3px}
+.chat-input-area{display:flex;gap:6px;padding-top:8px;align-items:center;background:var(--card);border-top:1px solid var(--border);padding:8px 0}
+.chat-input-area input{flex:1;padding:10px 14px;border-radius:25px;margin-top:0}
+.emoji-picker{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;font-size:20px;text-align:center;padding:8px}
+.emoji-btn{cursor:pointer;padding:5px;border-radius:6px}
+.chat-day-sep{text-align:center;margin:6px 0;font-size:10px;color:var(--sub);position:relative}
+.chat-day-sep::before,.chat-day-sep::after{content:'';position:absolute;top:50%;width:28%;height:1px;background:var(--border)}
+.chat-day-sep::before{left:0}.chat-day-sep::after{right:0}
+.chat-day-sep span{background:var(--bg);padding:0 8px}
+
+/* THEME PICKER */
+.theme-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.theme-dot{width:100%;aspect-ratio:1;border-radius:12px;cursor:pointer;border:3px solid transparent;display:flex;align-items:center;justify-content:center;font-size:18px;transition:transform 0.2s}
+.theme-dot:active{transform:scale(0.9)}
+.theme-dot.selected{border-color:var(--text)}
+
+/* ACTIVITY LOG */
+.act-item{font-size:11px;padding:9px;border-bottom:1px solid var(--border)}
+.act-item:last-child{border-bottom:none}
+
+/* BUTTONS */
+.btn-primary{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;margin-top:12px}
+.btn-secondary{width:100%;padding:10px;border:1px solid var(--border);background:none;color:var(--sub);border-radius:10px;font-weight:600;cursor:pointer;font-family:inherit;font-size:13px;margin-top:8px}
+.btn-amber{background:var(--amber);color:#fff;border:none}
+.btn-blue{background:var(--blue);color:#fff;border:none}
+.btn-red{background:var(--red);color:#fff;border:none}
+</style>
+</head>
+<body>
+<div class="app" id="theApp">
+
+  <div class="header">
+    <div class="header-top">
+      <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+      <button class="header-user-pill" onclick="quickSwitchUser()" id="user-pill">👤 Papa</button>
+    </div>
+    <div class="header-title">🕌 Hutang Puasa Family</div>
+    <div class="stats-container" id="dashboard-stats"></div>
+  </div>
+
+  <!-- TABS: Catat | Riwayat | Log | Chat | Cloud -->
+  <div class="tabs">
+    <div class="tab active" id="tab-catat" onclick="setTab('catat')">✏️ Catat</div>
+    <div class="tab" id="tab-log" onclick="setTab('log')">📋 Riwayat</div>
+    <div class="tab" id="tab-activity" onclick="setTab('activity')">🕒 Log</div>
+    <div class="tab" id="tab-chat" onclick="setTab('chat')">💬 Chat<span class="unread-badge" id="chat-badge" style="display:none">0</span></div>
+    <div class="tab" id="tab-sync" onclick="setTab('sync')">☁️ Cloud</div>
+  </div>
+
+  <div class="content" id="main-content"></div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="setTab('catat');setActiveNav('home')">🏠 Home</div>
+    <div class="nav-item" id="nav-excel" onclick="exportToExcel()">📊 Excel</div>
+    <div class="nav-item" id="nav-settings" onclick="setTab('sync');setActiveNav('settings')">⚙️ Settings</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal-box" id="modal-content"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// FIREBASE
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDDLpfpWzmwAS5-oeFW8jyq4Y7YZsVo4-g",
+  authDomain: "hutang-puasa.firebaseapp.com",
+  databaseURL: "https://hutang-puasa-default-rtdb.firebaseio.com",
+  projectId: "hutang-puasa",
+  storageBucket: "hutang-puasa.firebasestorage.app",
+  messagingSenderId: "889099979356",
+  appId: "1:889099979356:web:9b1481ec46da4425a57499"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ============================================================
+// CONSTANTS
+// ============================================================
+const ADMIN_PIN = "356652";
+const THEMES = {
+  green: { label: "Hijau", icon: "🌿" },
+  pink:  { label: "Pink",  icon: "🌸" },
+  ocean: { label: "Laut",  icon: "🌊" },
+  sand:  { label: "Pasir", icon: "🏜️" },
+  dark:  { label: "Gelap", icon: "🌙" }
+};
+
+// ============================================================
+// STATE — load semua dari localStorage per-user
+// ============================================================
+let myName = localStorage.getItem('hp_user_name') || 'Papa';
+let syncId  = localStorage.getItem('hp_sync_id')   || '';
+
+function userKey(k) { return `hp_${myName}_${k}`; }
+
+let records    = JSON.parse(localStorage.getItem('hp_v4_data')    || '[]');
+let profiles   = JSON.parse(localStorage.getItem('hp_profiles')   || '["Papa","Ibu"]');
+let activities = JSON.parse(localStorage.getItem('hp_activities') || '[]');
+
+// Per-user theme
+let currentTheme = localStorage.getItem(userKey('theme')) || 'green';
+
+// Filter & sort
+let filterUser   = 'all';
+let filterStatus = 'all';
+let sortMode     = 'hutang_terbaru';  // default: hutang terbaru ke terlama
+
+// Chat state
+let unreadCount    = 0;
+let lastSeenChatTime = parseInt(localStorage.getItem('hp_last_seen_chat') || '0');
+let notifSound     = null;
+let notifPermission = false;
+let isAdminAuthenticated = localStorage.getItem('hp_admin_auth') === 'true';
+
+let currentTab = 'catat';
+let dbListenerRef = null;
+
+const emojis = ["😊","😇","🙏","👍","✨","🌙","⭐","🕋","🕌","📅","✅","❌","💪","❤️","🤲","😅","😭","🥘","🥤","🍰"];
+
+// ============================================================
+// THEME
+// ============================================================
+function applyTheme(theme) {
+  currentTheme = theme;
+  document.getElementById('theApp').setAttribute('data-theme', theme);
+  document.body.setAttribute('data-theme', theme);
+  localStorage.setItem(userKey('theme'), theme);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+(function init() {
+  applyTheme(currentTheme);
+  updateUserPill();
+  updateStats();
+  renderContent();
+  initNotif();
+  if (syncId) setupFirebaseListener();
+  startBackgroundChatListener();
+})();
+
+// ============================================================
+// USER PILL & QUICK SWITCH
+// ============================================================
+function updateUserPill() {
+  const el = document.getElementById('user-pill');
+  if (el) el.textContent = '👤 ' + myName;
+}
+
+function quickSwitchUser() {
+  let html = '<h4 style="margin-bottom:12px;text-align:center">Ganti Pengguna</h4>';
+  html += '<div style="display:flex;flex-direction:column;gap:8px">';
+  profiles.forEach(p => {
+    const active = p === myName ? ` style="background:var(--primary);color:#fff"` : '';
+    html += `<button class="btn-secondary"${active} onclick="switchUser('${p}')" style="margin-top:0">${p === myName ? '✅ ' : ''}${p}</button>`;
+  });
+  html += `</div><button class="btn-secondary" onclick="closeModal()">Batal</button>`;
+  openModal(html);
+}
+
+function switchUser(name) {
+  myName = name;
+  localStorage.setItem('hp_user_name', name);
+  // Load tema user
+  currentTheme = localStorage.getItem(userKey('theme')) || 'green';
+  applyTheme(currentTheme);
+  updateUserPill();
+  closeModal();
+  showToast('👤 Beralih ke ' + name);
+  renderContent();
+}
+
+// ============================================================
+// FIREBASE LISTENER
+// ============================================================
+function setupFirebaseListener() {
+  if (!syncId) return;
+  if (dbListenerRef) dbListenerRef.off();
+  dbListenerRef = db.ref('sync/' + syncId + '/data');
+  dbListenerRef.on('value', (s) => {
+    if (s.val()) {
+      records    = s.val().records    || [];
+      profiles   = s.val().profiles   || ["Papa","Ibu"];
+      activities = s.val().activities || [];
+      localStorage.setItem('hp_v4_data',    JSON.stringify(records));
+      localStorage.setItem('hp_profiles',   JSON.stringify(profiles));
+      localStorage.setItem('hp_activities', JSON.stringify(activities));
+      updateStats();
+      if (currentTab !== 'chat') renderContent();
+    }
+  });
+}
+
+function startBackgroundChatListener() {
+  if (!syncId) return;
+  db.ref('sync/' + syncId + '/chats').limitToLast(1).on('child_added', (s) => {
+    if (currentTab === 'chat') return;
+    const m = s.val();
+    if (m && m.sender !== myName && m.time > lastSeenChatTime) {
+      showPushNotif(m.sender, m.text);
+    }
+  });
+}
+
+// ============================================================
+// SAVE
+// ============================================================
+function save(actionDesc) {
+  localStorage.setItem('hp_v4_data',    JSON.stringify(records));
+  localStorage.setItem('hp_profiles',   JSON.stringify(profiles));
+  if (actionDesc) {
+    const log = { user: myName, action: actionDesc, time: Date.now() };
+    activities.unshift(log);
+    if (activities.length > 500) activities.pop();
+    localStorage.setItem('hp_activities', JSON.stringify(activities));
+  }
+  if (syncId) db.ref('sync/' + syncId + '/data').set({ records, profiles, activities });
+  updateStats();
+}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats() {
+  const dash = document.getElementById('dashboard-stats');
+  if (!dash) return;
+  let html = '';
+  profiles.forEach(p => {
+    const total  = records.filter(r => r.owner === p).length;
+    const lunas  = records.filter(r => r.owner === p && r.status === 'done').length;
+    const hutang = total - lunas;
+    const persen = total > 0 ? Math.round((lunas / total) * 100) : 0;
+    html += `<div class="prog-row">
+      <div class="prog-info"><span>${p}</span><span>${persen}%</span></div>
+      <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${persen}%"></div></div>
+      <div class="prog-detail"><span>Total: ${total}</span>|<span>Lunas: ${lunas}</span>|<span style="font-weight:700">Sisa: ${hutang}</span></div>
+    </div>`;
+  });
+  dash.innerHTML = html;
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function setTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const el = document.getElementById('tab-' + tab);
+  if (el) el.classList.add('active');
+  renderContent();
+}
+
+function setActiveNav(n) {
+  document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+  const m = { home:'nav-home', settings:'nav-settings' };
+  const el = document.getElementById(m[n]);
+  if (el) el.classList.add('active');
+}
+
+// ============================================================
+// RENDER CONTENT
+// ============================================================
+function renderContent() {
+  const c = document.getElementById('main-content');
+  if (!c) return;
+
+  // ---- CATAT ----
+  if (currentTab === 'catat') {
+    const today = new Date().toISOString().split('T')[0];
+    const profOpts = profiles.map(p => `<option value="${p}" ${myName===p?'selected':''}>${p}</option>`).join('');
+    const yearOpts = Array.from({length:6}, (_,i) => `<option>${new Date().getFullYear()-i}</option>`).join('');
+    c.innerHTML = `
+      <div class="card">
+        <h4>✏️ Catat Hutang Baru</h4>
+        <label>Milik Siapa?</label>
+        <select id="f-owner">${profOpts}</select>
+        <label>Tanggal Terhutang</label>
+        <input type="date" id="f-date" value="${today}" max="${today}">
+        <label>Tahun Ramadan</label>
+        <select id="f-year">${yearOpts}</select>
+        <label>Catatan (Opsional)</label>
+        <textarea id="f-note" placeholder="Alasan berhalangan..."></textarea>
+        <button class="btn-primary" onclick="preAddRecord()">💾 Simpan Catatan</button>
+      </div>
+      <div class="card" style="background:var(--amber-light);border-color:var(--amber)">
+        <div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:6px">📋 Catat Banyak Hutang Sekaligus?</div>
+        <div style="font-size:11px;color:var(--sub);margin-bottom:10px">Gunakan Catat Massal untuk memasukkan puluhan hutang tanpa satu per satu.</div>
+        <button class="btn-primary btn-amber" onclick="openBulkModal()">📥 Catat Massal</button>
+      </div>`;
+
+  // ---- LOG / RIWAYAT ----
+  } else if (currentTab === 'log') {
+    const profOpts = profiles.map(p => `<option value="${p}" ${filterUser===p?'selected':''}>${p}</option>`).join('');
+    const filtered = getFilteredSorted();
+
+    const sortButtons = [
+      ['hutang_terbaru', '⚠️ Hutang Terbaru'],
+      ['hutang_terlama', '⚠️ Hutang Terlama'],
+      ['lunas_terbaru',  '✅ Lunas Terbaru'],
+      ['lunas_terlama',  '✅ Lunas Terlama'],
+      ['date_desc',      '📅 Semua ↓'],
+      ['date_asc',       '📅 Semua ↑'],
+    ].map(([k,l]) => `<button class="sort-btn${sortMode===k?' active':''}" onclick="setSort('${k}')">${l}</button>`).join('');
+
+    let listHtml = filtered.map(r => `
+      <div class="log-item" style="border-left:4px solid ${r.status==='done'?'var(--primary)':'var(--amber)'}">
+        <span class="badge-name">${r.owner}</span>
+        <div style="font-weight:700;color:${r.status==='done'?'var(--primary)':'var(--amber)'}">${r.status==='done'?'✅ LUNAS':'⚠️ HUTANG'}</div>
+        <div style="font-size:12px;margin-top:4px"><b>Tgl Hutang:</b> ${formatDate(r.date)}</div>
+        ${r.status==='done'?`<div style="font-size:12px;color:var(--primary)"><b>Tgl Lunas:</b> ${formatDate(r.finishDate)}</div>`:''}
+        <div style="font-size:11px;color:var(--sub)">Ramadan ${r.year||'-'}</div>
+        ${r.note?`<div style="font-size:11px;font-style:italic;margin-top:5px;padding:5px;background:var(--bg);border-radius:6px;color:var(--sub)">"${r.note}"</div>`:''}
+        <div class="log-actions">
+          ${r.status==='hutang'?`<button class="log-btn btn-done" onclick="preOpenFinish(${r.id})">Selesaikan</button>`:''}
+          <button class="log-btn" style="color:var(--blue)" onclick="preEdit(${r.id})">Edit</button>
+          <button class="log-btn" style="color:var(--red)" onclick="preDelete(${r.id})">Hapus</button>
+        </div>
+      </div>`).join('');
+
+    c.innerHTML = `
+      <div class="card">
+        <div class="filter-box">
+          <select onchange="updateFilter('user',this.value)">
+            <option value="all">Semua User</option>${profOpts}
+          </select>
+          <select onchange="updateFilter('status',this.value)">
+            <option value="all" ${filterStatus==='all'?'selected':''}>Semua Status</option>
+            <option value="hutang" ${filterStatus==='hutang'?'selected':''}>Hutang</option>
+            <option value="done" ${filterStatus==='done'?'selected':''}>Lunas</option>
+          </select>
+        </div>
+        <div class="sort-row" style="margin-top:10px">${sortButtons}</div>
+      </div>
+      ${listHtml || '<center style="color:var(--sub);margin-top:40px;padding:20px">Tidak ada data ditemukan</center>'}`;
+
+  // ---- ACTIVITY LOG ----
+  } else if (currentTab === 'activity') {
+    const logHtml = activities.map(a =>
+      `<div class="act-item"><span style="font-weight:700;color:var(--primary)">${a.user}</span> ${a.action}<div style="font-size:10px;color:var(--sub);margin-top:2px">${new Date(a.time).toLocaleString('id-ID')}</div></div>`
+    ).join('');
+    c.innerHTML = `
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h4>🕒 Log Aktivitas</h4>
+          <button onclick="exportLogs()" style="font-size:10px;padding:5px 10px;background:var(--blue);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit">Export</button>
+        </div>
+        ${logHtml || '<center style="color:var(--sub);padding:20px">Kosong</center>'}
+      </div>`;
+
+  // ---- CHAT ----
+  } else if (currentTab === 'chat') {
+    markChatRead();
+    if (!syncId) {
+      c.innerHTML = `<div class="card" style="text-align:center;padding:30px">
+        <div style="font-size:40px;margin-bottom:12px">💬</div>
+        <div style="font-weight:700;margin-bottom:8px">Chat Belum Aktif</div>
+        <div style="font-size:12px;color:var(--sub)">Set Sync ID dulu di tab ☁️ Cloud untuk mengaktifkan chat keluarga.</div>
+      </div>`;
+      return;
+    }
+    c.innerHTML = `
+      <div class="chat-wrap">
+        <div class="chat-messages" id="chat-msgs">
+          <center style="color:var(--sub);padding:20px;font-size:12px">Menghubungkan...</center>
+        </div>
+        <div id="emoji-panel" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:4px">
+          <div class="emoji-picker">${emojis.map(e => `<span class="emoji-btn" onclick="insertEmoji('${e}')">${e}</span>`).join('')}</div>
+        </div>
+        <div class="chat-input-area">
+          <button onclick="toggleEmoji()" style="background:var(--bg);border:1px solid var(--border);padding:9px 11px;border-radius:10px;cursor:pointer;font-size:16px;flex-shrink:0">😊</button>
+          <input type="text" id="chat-input" placeholder="Pesan sebagai ${myName}..." onkeypress="if(event.key==='Enter')sendChat()" style="flex:1">
+          <button onclick="sendChat()" style="background:var(--primary);color:#fff;border:none;padding:9px 14px;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">Kirim</button>
+        </div>
+      </div>`;
+    initChatListener();
+
+  // ---- SYNC / SETTINGS ----
+  } else if (currentTab === 'sync') {
+    const profOpts = profiles.map(p => `<option value="${p}" ${myName===p?'selected':''}>${p}</option>`).join('');
+    const profList = profiles.map(p => `
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);align-items:center">
+        <span>${p}</span>
+        <span onclick="preRemoveProfile('${p}')" style="color:var(--red);cursor:pointer;font-size:12px">Hapus</span>
+      </div>`).join('');
+
+    // Theme picker
+    const themeGrid = Object.entries(THEMES).map(([k,t]) => {
+      const colors = {
+        green: 'background:linear-gradient(135deg,#085041,#1D9E75)',
+        pink:  'background:linear-gradient(135deg,#9a3261,#e05f96)',
+        ocean: 'background:linear-gradient(135deg,#0e3d6e,#2d84d4)',
+        sand:  'background:linear-gradient(135deg,#5C3D24,#A97450)',
+        dark:  'background:linear-gradient(135deg,#0a1a14,#1D9E75)'
+      };
+      const sel = currentTheme === k ? ' selected' : '';
+      return `<div class="theme-dot${sel}" style="${colors[k]}" onclick="pickTheme('${k}')" title="${t.label}">
+        <span style="font-size:18px">${t.icon}</span>
+      </div>`;
+    }).join('');
+
+    c.innerHTML = `
+      <div class="card">
+        <h4>☁️ Sinkronisasi</h4>
+        <label>ID Keluarga (Sync ID)</label>
+        <input type="text" id="sync-input" value="${syncId}" placeholder="Masukkan ID yang sama di semua HP">
+        <label>Nama Anda</label>
+        <select id="name-input">${profOpts}</select>
+        <button class="btn-primary btn-blue" onclick="preApplySync()">💾 Simpan & Sync</button>
+        ${isAdminAuthenticated ? `<button class="btn-primary btn-red" onclick="logoutAdmin()" style="margin-top:8px">🔒 Logout Admin</button>` : ''}
+      </div>
+      <div class="card">
+        <h4>🎨 Tema Tampilan</h4>
+        <div style="font-size:11px;color:var(--sub);margin:6px 0 4px">Tema tersimpan per pengguna. Pilih tema untuk <b>${myName}</b>:</div>
+        <div class="theme-grid">${themeGrid}</div>
+        <div style="font-size:10px;color:var(--sub);margin-top:8px;text-align:center">Tema aktif: <b>${THEMES[currentTheme].label} ${THEMES[currentTheme].icon}</b></div>
+      </div>
+      <div class="card">
+        <h4>👥 Kelola Profil</h4>
+        <div id="prof-list" style="margin:8px 0">${profList}</div>
+        <input type="text" id="new-prof-name" placeholder="Nama anggota baru...">
+        <button class="btn-secondary" onclick="addProfile()" style="border-color:var(--primary);color:var(--primary)">+ Tambah Profil</button>
+      </div>`;
+  }
+}
+
+// ============================================================
+// SORT & FILTER HELPERS
+// ============================================================
+function getFilteredSorted() {
+  let filtered = records.filter(r => {
+    const matchUser   = filterUser   === 'all' || r.owner  === filterUser;
+    const matchStatus = filterStatus === 'all' || r.status === filterStatus;
+    return matchUser && matchStatus;
+  });
+
+  // Sort logic
+  switch (sortMode) {
+    case 'hutang_terbaru':
+      // Hutang dulu (desc date), lalu done
+      filtered.sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'hutang' ? -1 : 1;
+        if (a.status === 'hutang') return b.date.localeCompare(a.date);
+        return b.date.localeCompare(a.date);
+      });
+      break;
+    case 'hutang_terlama':
+      filtered.sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'hutang' ? -1 : 1;
+        if (a.status === 'hutang') return a.date.localeCompare(b.date);
+        return a.date.localeCompare(b.date);
+      });
+      break;
+    case 'lunas_terbaru':
+      filtered.sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'done' ? -1 : 1;
+        const da = a.finishDate || a.date;
+        const db_ = b.finishDate || b.date;
+        return db_.localeCompare(da);
+      });
+      break;
+    case 'lunas_terlama':
+      filtered.sort((a, b) => {
+        if (a.status !== b.status) return a.status === 'done' ? -1 : 1;
+        const da = a.finishDate || a.date;
+        const db_ = b.finishDate || b.date;
+        return da.localeCompare(db_);
+      });
+      break;
+    case 'date_desc':
+      filtered.sort((a, b) => b.date.localeCompare(a.date));
+      break;
+    case 'date_asc':
+      filtered.sort((a, b) => a.date.localeCompare(b.date));
+      break;
+  }
+  return filtered;
+}
+
+function updateFilter(type, val) {
+  if (type === 'user')   filterUser   = val;
+  if (type === 'status') filterStatus = val;
+  renderContent();
+}
+
+function setSort(mode) {
+  sortMode = mode;
+  renderContent();
+}
+
+// ============================================================
+// THEME
+// ============================================================
+function pickTheme(theme) {
+  applyTheme(theme);
+  // re-render settings so selected state updates
+  renderContent();
+  showToast('🎨 Tema ' + THEMES[theme].label + ' diterapkan untuk ' + myName);
+}
+
+// ============================================================
+// CHAT FUNCTIONS
+// ============================================================
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  if (!input) return;
+  const msg = input.value.trim();
+  if (!msg || !syncId) { if(!syncId) showToast('Set Sync ID dulu!'); return; }
+  db.ref('sync/' + syncId + '/chats').push({
+    sender: myName, text: msg, time: Date.now()
+  }).then(() => {
+    input.value = '';
+    const ep = document.getElementById('emoji-panel');
+    if (ep) ep.style.display = 'none';
+  }).catch(() => showToast('⚠️ Gagal kirim. Cek koneksi.'));
+}
+
+function initChatListener() {
+  if (!syncId) return;
+  const box = document.getElementById('chat-msgs');
+  if (!box) return;
+
+  db.ref('sync/' + syncId + '/chats').off();
+
+  let isFirstLoad = true;
+  let lastMsgCount = 0;
+
+  db.ref('sync/' + syncId + '/chats').limitToLast(100).on('value', (s) => {
+    const chatBox = document.getElementById('chat-msgs');
+    if (!chatBox) return; // tab mungkin sudah berganti
+
+    if (!s.exists()) {
+      chatBox.innerHTML = '<center style="color:var(--sub);padding:30px;font-size:12px">Belum ada obrolan. Mulai menyapa! 👋</center>';
+      isFirstLoad = false;
+      return;
+    }
+
+    let msgs = [];
+    s.forEach(child => msgs.push({ key: child.key, ...child.val() }));
+
+    // Deteksi pesan baru
+    if (!isFirstLoad && msgs.length > lastMsgCount) {
+      msgs.slice(lastMsgCount).forEach(m => {
+        if (m.sender !== myName) showPushNotif(m.sender, m.text);
+      });
+    }
+    lastMsgCount = msgs.length;
+
+    let h = '';
+    let prevDay = '';
+    msgs.forEach(m => {
+      const msgDate = new Date(m.time);
+      const dayKey  = msgDate.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      if (dayKey !== prevDay) {
+        h += `<div class="chat-day-sep"><span>${dayKey}</span></div>`;
+        prevDay = dayKey;
+      }
+      const side    = m.sender === myName ? 'me' : 'other';
+      const timeStr = msgDate.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
+      h += `<div class="msg ${side}">
+        <div style="font-size:9px;font-weight:700;opacity:0.75;margin-bottom:2px">${m.sender}</div>
+        ${escapeHtml(m.text)}
+        <div style="font-size:8px;opacity:0.6;text-align:right;margin-top:3px">${timeStr}</div>
+      </div>`;
+    });
+
+    chatBox.innerHTML = h;
+    chatBox.scrollTop = chatBox.scrollHeight;
+    if (currentTab === 'chat') markChatRead();
+    isFirstLoad = false;
+  });
+}
+
+function escapeHtml(text) {
+  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function toggleEmoji() {
+  const p = document.getElementById('emoji-panel');
+  if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
+}
+
+function insertEmoji(e) {
+  const i = document.getElementById('chat-input');
+  if (i) { i.value += e; i.focus(); }
+}
+
+function markChatRead() {
+  unreadCount = 0;
+  lastSeenChatTime = Date.now();
+  localStorage.setItem('hp_last_seen_chat', lastSeenChatTime);
+  updateChatBadge();
+}
+
+function updateChatBadge() {
+  const b = document.getElementById('chat-badge');
+  if (!b) return;
+  if (unreadCount > 0 && currentTab !== 'chat') {
+    b.style.display = 'flex';
+    b.textContent   = unreadCount > 99 ? '99+' : unreadCount;
+  } else {
+    b.style.display = 'none';
+  }
+}
+
+// ============================================================
+// NOTIFICATION
+// ============================================================
+function initNotif() {
+  if ('Notification' in window) {
+    Notification.requestPermission().then(p => { notifPermission = p === 'granted'; });
+  }
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) notifSound = new AC();
+  } catch(e) {}
+}
+
+function playNotifSound() {
+  try {
+    if (!notifSound) { const A=window.AudioContext||window.webkitAudioContext; if(A) notifSound=new A(); else return; }
+    const o=notifSound.createOscillator(), g=notifSound.createGain();
+    o.connect(g); g.connect(notifSound.destination);
+    o.frequency.setValueAtTime(880, notifSound.currentTime);
+    o.frequency.setValueAtTime(660, notifSound.currentTime+0.1);
+    g.gain.setValueAtTime(0.3, notifSound.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, notifSound.currentTime+0.4);
+    o.start(); o.stop(notifSound.currentTime+0.4);
+  } catch(e) {}
+}
+
+function showPushNotif(sender, text) {
+  if (notifPermission && document.hidden) {
+    try { new Notification('💬 '+sender, { body: text }); } catch(e) {}
+  }
+  playNotifSound();
+  unreadCount++;
+  updateChatBadge();
+}
+
+// ============================================================
+// RECORD ACTIONS
+// ============================================================
+function preAddRecord() {
+  const owner = document.getElementById('f-owner').value;
+  if (owner==='Papa'||owner==='Ibu') requestAdminAccess(addRecord); else addRecord();
+}
+
+function addRecord() {
+  const owner = document.getElementById('f-owner').value;
+  const date  = document.getElementById('f-date').value;
+  if (!date) { showToast('⚠️ Pilih tanggal!'); return; }
+  records.push({ id:Date.now(), owner, date, year:document.getElementById('f-year').value, note:document.getElementById('f-note').value, status:'hutang', finishDate:null });
+  save(`menambah hutang baru untuk ${owner} tanggal ${date}`);
+  setTab('log'); showToast('✅ Berhasil dicatat!');
+}
+
+function preOpenFinish(id) {
+  const r = records.find(x=>x.id===id);
+  if (r.owner==='Papa'||r.owner==='Ibu') requestAdminAccess(()=>openFinishModal(id)); else openFinishModal(id);
+}
+
+function openFinishModal(id) {
+  openModal(`<h4>✅ Tandai Lunas</h4>
+    <label>Tanggal Pelunasan</label>
+    <input type="date" id="f-finish-date" value="${new Date().toISOString().split('T')[0]}">
+    <button class="btn-primary" onclick="markDone(${id})">Konfirmasi Lunas</button>
+    <button class="btn-secondary" onclick="closeModal()">Batal</button>`);
+}
+
+function markDone(id) {
+  const idx = records.findIndex(r=>r.id===id);
+  const fDate = document.getElementById('f-finish-date').value;
+  records[idx].status = 'done';
+  records[idx].finishDate = fDate;
+  save(`melunasi hutang ${records[idx].owner} (Lunas tgl: ${fDate})`);
+  closeModal(); renderContent(); showToast('🎉 Alhamdulillah, lunas!');
+}
+
+function preEdit(id) {
+  const r = records.find(x=>x.id===id);
+  if (r.owner==='Papa'||r.owner==='Ibu') requestAdminAccess(()=>openEditModal(id)); else openEditModal(id);
+}
+
+function openEditModal(id) {
+  const r = records.find(x=>x.id===id);
+  let content = `<h4>Edit Data ${r.owner}</h4>`;
+  if (r.status==='hutang') {
+    content += `<label>Tanggal Hutang</label><input type="date" id="e-date" value="${r.date}"><label>Tahun Ramadan</label><input type="number" id="e-year" value="${r.year}">`;
+  } else {
+    content += `<label>Status</label><select id="e-status"><option value="done">Tetap Lunas</option><option value="hutang">Kembalikan ke Hutang</option></select><label>Tanggal Pelunasan</label><input type="date" id="e-finish" value="${r.finishDate||r.date}">`;
+  }
+  content += `<label>Catatan</label><textarea id="e-note">${r.note||''}</textarea>
+    <button class="btn-primary" onclick="saveEdit(${id})">💾 Simpan</button>
+    <button class="btn-secondary" onclick="closeModal()">Batal</button>`;
+  openModal(content);
+}
+
+function saveEdit(id) {
+  const idx = records.findIndex(r=>r.id===id);
+  const old = {...records[idx]};
+  if (old.status==='hutang') {
+    records[idx].date = document.getElementById('e-date').value;
+    records[idx].year = document.getElementById('e-year').value;
+  } else {
+    records[idx].status     = document.getElementById('e-status').value;
+    records[idx].finishDate = document.getElementById('e-finish').value;
+    if (records[idx].status==='hutang') records[idx].finishDate = null;
+  }
+  records[idx].note = document.getElementById('e-note').value;
+  save(`mengubah data ${old.owner}`);
+  closeModal(); renderContent(); showToast('✅ Berhasil diupdate!');
+}
+
+function preDelete(id) {
+  const r = records.find(x=>x.id===id);
+  if (r.owner==='Papa'||r.owner==='Ibu') requestAdminAccess(()=>deleteRecord(id)); else deleteRecord(id);
+}
+
+function deleteRecord(id) {
+  const r = records.find(x=>x.id===id);
+  openModal(`<h4>Hapus Data?</h4>
+    <p style="font-size:13px;color:var(--sub);margin:10px 0">Hapus hutang milik <b>${r.owner}</b> tanggal <b>${formatDate(r.date)}</b>?</p>
+    <button class="btn-primary btn-red" onclick="confirmDelete(${id})">🗑 Ya, Hapus</button>
+    <button class="btn-secondary" onclick="closeModal()">Batal</button>`);
+}
+
+function confirmDelete(id) {
+  const r = records.find(x=>x.id===id);
+  records = records.filter(x=>x.id!==id);
+  save(`menghapus data hutang milik ${r.owner} (Tgl: ${r.date})`);
+  closeModal(); renderContent(); showToast('🗑 Data dihapus');
+}
+
+// ============================================================
+// BULK ADD
+// ============================================================
+function openBulkModal() {
+  const today = new Date().toISOString().split('T')[0];
+  const profOpts = profiles.map(p=>`<option value="${p}" ${myName===p?'selected':''}>${p}</option>`).join('');
+  openModal(`<h4>📋 Catat Massal Hutang</h4>
+    <p style="font-size:11px;color:var(--sub);margin:6px 0 10px">Cocok untuk mencatat banyak hutang sekaligus (misal: 60 hari)</p>
+    <label>Milik Siapa?</label><select id="bulk-owner">${profOpts}</select>
+    <label>Tahun Ramadan</label><input type="number" id="bulk-year" value="${new Date().getFullYear()}">
+    <label>Jumlah Hari Hutang</label><input type="number" id="bulk-count" placeholder="Contoh: 60" min="1" max="200">
+    <label>Tanggal Mulai Hutang</label><input type="date" id="bulk-start" value="${today}">
+    <label>Catatan (berlaku semua)</label><textarea id="bulk-note" placeholder="Hutang lama belum tercatat..."></textarea>
+    <div id="bulk-preview"></div>
+    <button class="btn-primary btn-blue" onclick="previewBulk()">Preview & Konfirmasi</button>
+    <button class="btn-secondary" onclick="closeModal()">Batal</button>`);
+}
+
+function previewBulk() {
+  const owner = document.getElementById('bulk-owner').value;
+  const count = parseInt(document.getElementById('bulk-count').value);
+  const startDate = document.getElementById('bulk-start').value;
+  const year  = document.getElementById('bulk-year').value;
+  const note  = document.getElementById('bulk-note').value;
+  if (!count||count<1) { showToast('⚠️ Masukkan jumlah hari!'); return; }
+  if (!startDate)       { showToast('⚠️ Pilih tanggal mulai!'); return; }
+  const preview = document.getElementById('bulk-preview');
+  preview.innerHTML = `<div style="background:var(--amber-light);padding:10px;border-radius:8px;font-size:11px;margin-top:10px;color:var(--amber)">⚠️ Akan mencatat <b>${count} hutang</b> atas nama <b>${owner}</b> mulai <b>${formatDate(startDate)}</b>. Yakin?</div>`;
+  const btn = document.querySelector('#modal-content .btn-blue');
+  if (btn) {
+    btn.textContent = `✅ Simpan ${count} Data`;
+    btn.onclick = () => {
+      if (owner==='Papa'||owner==='Ibu') requestAdminAccess(()=>saveBulk(owner,count,startDate,year,note));
+      else saveBulk(owner,count,startDate,year,note);
+    };
+  }
+}
+
+function saveBulk(owner, count, startDate, year, note) {
+  const start = new Date(startDate+'T00:00:00');
+  for (let i=0; i<count; i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate()+i);
+    const dateStr = d.toISOString().split('T')[0];
+    records.push({ id:Date.now()+i, owner, date:dateStr, year, note, status:'hutang', finishDate:null });
+  }
+  save(`menambah ${count} hutang massal untuk ${owner} mulai ${startDate}`);
+  closeModal(); setTab('log');
+  showToast(`✅ Berhasil catat ${count} hutang untuk ${owner}!`);
+}
+
+// ============================================================
+// SYNC & PROFILES
+// ============================================================
+function preApplySync() {
+  const newName = document.getElementById('name-input').value;
+  if (newName==='Papa'||newName==='Ibu') requestAdminAccess(applySync); else applySync();
+}
+
+function applySync() {
+  syncId  = document.getElementById('sync-input').value.trim();
+  const newName = document.getElementById('name-input').value;
+  myName  = newName;
+  localStorage.setItem('hp_sync_id',   syncId);
+  localStorage.setItem('hp_user_name', myName);
+  updateUserPill();
+  if (syncId) {
+    setupFirebaseListener();
+    startBackgroundChatListener();
+  }
+  showToast('✅ Pengaturan disimpan!');
+  renderContent();
+}
+
+function preRemoveProfile(n) {
+  if (n==='Papa'||n==='Ibu') requestAdminAccess(()=>removeProfile(n)); else removeProfile(n);
+}
+
+function removeProfile(n) {
+  if (profiles.length <= 1) { showToast('⚠️ Minimal 1 profil!'); return; }
+  openModal(`<h4>Hapus Profil?</h4>
+    <p style="font-size:13px;color:var(--sub);margin:10px 0">Hapus profil <b>${n}</b>? Data hutangnya tidak terhapus.</p>
+    <button class="btn-primary btn-red" onclick="doRemoveProfile('${n}')">Hapus</button>
+    <button class="btn-secondary" onclick="closeModal()">Batal</button>`);
+}
+
+function doRemoveProfile(n) {
+  profiles = profiles.filter(p=>p!==n);
+  save(`menghapus profil: ${n}`);
+  closeModal(); renderContent();
+}
+
+function addProfile() {
+  const n = document.getElementById('new-prof-name').value.trim();
+  if (!n) { showToast('⚠️ Isi nama profil!'); return; }
+  if (profiles.includes(n)) { showToast('⚠️ Nama sudah ada!'); return; }
+  profiles.push(n);
+  save(`menambah profil baru: ${n}`);
+  renderContent(); showToast(`✅ Profil ${n} ditambahkan!`);
+}
+
+// ============================================================
+// ADMIN
+// ============================================================
+function requestAdminAccess(callback) {
+  if (isAdminAuthenticated) { callback(); return; }
+  openModal(`<h4>🔒 Verifikasi Admin</h4>
+    <p style="font-size:12px;color:var(--sub);margin:8px 0">Aksi ini memerlukan PIN Admin (Papa/Ibu)</p>
+    <label>PIN Admin</label>
+    <input type="password" id="admin-pin-input" placeholder="Masukkan PIN..." maxlength="10">
+    <button class="btn-primary" onclick="verifyAdmin(${callback.toString().includes('addRecord') || callback.toString().includes('saveEdit') || callback.toString().includes('markDone') || callback.toString().includes('deleteRecord') || callback.toString().includes('saveBulk') ? 'true' : 'false'})">Verifikasi</button>
+    <button class="btn-secondary" onclick="closeModal()">Batal</button>`);
+  window._pendingAdminCallback = callback;
+}
+
+function verifyAdmin() {
+  const pin = document.getElementById('admin-pin-input').value;
+  if (pin === ADMIN_PIN) {
+    isAdminAuthenticated = true;
+    localStorage.setItem('hp_admin_auth','true');
+    closeModal();
+    showToast('✅ Akses Admin terverifikasi!');
+    if (window._pendingAdminCallback) { window._pendingAdminCallback(); window._pendingAdminCallback = null; }
+  } else {
+    showToast('❌ PIN Salah!');
+  }
+}
+
+function logoutAdmin() {
+  isAdminAuthenticated = false;
+  localStorage.removeItem('hp_admin_auth');
+  showToast('🔒 Sesi Admin dihapus!');
+  renderContent();
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function exportToExcel() {
+  const data = records.map(r=>({ "Nama":r.owner,"Tgl Hutang":r.date,"Status":r.status.toUpperCase(),"Tgl Lunas":r.finishDate||'-',"Catatan":r.note||'', "Tahun":r.year||'' }));
+  const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Data"); XLSX.writeFile(wb,"Hutang_Puasa_Family.xlsx");
+}
+
+function exportLogs() {
+  const data=activities.map(a=>({ "Waktu":new Date(a.time).toLocaleString(),"User":a.user,"Aksi":a.action }));
+  const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Logs"); XLSX.writeFile(wb,"Activity_Logs.xlsx");
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal(html) {
+  const m = document.getElementById('modal');
+  document.getElementById('modal-content').innerHTML = html;
+  m.style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modal').style.display = 'none';
+}
+
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal')) closeModal();
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function formatDate(d) {
+  return d ? new Date(d+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '-';
+}
+
+function showToast(m) {
+  const t=document.getElementById('toast');
+  t.innerText=m; t.style.display='block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.style.display='none', 3000);
+}
+</script>
+</body>
+</html>
