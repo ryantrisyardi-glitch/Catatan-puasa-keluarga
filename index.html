@@ -447,35 +447,61 @@ function friendlyError(code) {
 async function createFamily() {
   const fname = v('family-name'), oname = v('owner-name');
   if (!fname || !oname) { toast('Isi nama keluarga & nama Anda!'); return; }
-  const fid = db.ref('families').push().key;
-  const uid = me.uid;
-  await db.ref('families/' + fid).set({
-    name: fname,
-    superadmin: uid,
-    createdAt: Date.now(),
-    members: { [uid]: { name: oname, role: 'superadmin', joinedAt: Date.now() } }
-  });
-  await db.ref('users/' + uid).set({ name: oname, familyId: fid, role: 'superadmin' });
-  toast('✅ Keluarga berhasil dibuat!');
+  const btn = document.querySelector('#screen-setup button.btn-p');
+  if (btn) { btn.disabled = true; btn.textContent = 'Menyimpan...'; }
+  try {
+    const fid = db.ref('families').push().key;
+    const uid = me.uid;
+    await db.ref('families/' + fid).set({
+      name: fname, superadmin: uid, createdAt: Date.now(),
+      members: { [uid]: { name: oname, role: 'superadmin', joinedAt: Date.now() } }
+    });
+    await db.ref('users/' + uid).set({ name: oname, familyId: fid, role: 'superadmin' });
+    myProfile = { name: oname, familyId: fid, role: 'superadmin' };
+    familyId  = fid;
+    currentTheme = localStorage.getItem('theme_' + uid) || 'green';
+    applyTheme(currentTheme);
+    toast('✅ Keluarga berhasil dibuat!');
+    await loadFamily();
+    showScreen('app');
+  } catch(err) {
+    console.error(err);
+    toast('❌ Gagal: ' + (err.message || String(err)));
+    if (btn) { btn.disabled = false; btn.textContent = '🏠 Buat Keluarga'; }
+  }
 }
 
 async function joinFamily() {
-  const code = v('invite-code-input').toUpperCase();
+  const code  = v('invite-code-input').toUpperCase();
   const jname = v('join-name');
-  if (!code || code.length !== 6) { toast('Kode undangan harus 6 digit!'); return; }
+  if (!code || code.length !== 6) { toast('Kode harus 6 karakter!'); return; }
   if (!jname) { toast('Isi nama Anda!'); return; }
-  const snap = await db.ref('invites/' + code).get();
-  if (!snap.exists()) { toast('❌ Kode undangan tidak valid!'); return; }
-  const inv = snap.val();
-  if (inv.used) { toast('❌ Kode sudah pernah dipakai!'); return; }
-  if (Date.now() > inv.expiresAt) { toast('❌ Kode sudah kedaluwarsa!'); return; }
-  const uid = me.uid;
-  const fid = inv.familyId;
-  await db.ref('families/' + fid + '/members/' + uid).set({ name: jname, role: 'member', joinedAt: Date.now() });
-  await db.ref('users/' + uid).set({ name: jname, familyId: fid, role: 'member' });
-  await db.ref('invites/' + code + '/used').set(true);
-  toast('✅ Berhasil bergabung!');
+  const btn = document.querySelector('#screen-setup button.btn-blue');
+  if (btn) { btn.disabled = true; btn.textContent = 'Bergabung...'; }
+  try {
+    const snap = await db.ref('invites/' + code).get();
+    if (!snap.exists()) { toast('❌ Kode tidak valid!'); if(btn){btn.disabled=false;btn.textContent='🔗 Bergabung';} return; }
+    const inv = snap.val();
+    if (inv.used) { toast('❌ Kode sudah dipakai!'); if(btn){btn.disabled=false;btn.textContent='🔗 Bergabung';} return; }
+    if (Date.now() > inv.expiresAt) { toast('❌ Kode kedaluwarsa!'); if(btn){btn.disabled=false;btn.textContent='🔗 Bergabung';} return; }
+    const uid = me.uid, fid = inv.familyId;
+    await db.ref('families/' + fid + '/members/' + uid).set({ name: jname, role: 'member', joinedAt: Date.now() });
+    await db.ref('users/' + uid).set({ name: jname, familyId: fid, role: 'member' });
+    await db.ref('invites/' + code + '/used').set(true);
+    myProfile = { name: jname, familyId: fid, role: 'member' };
+    familyId  = fid;
+    currentTheme = localStorage.getItem('theme_' + uid) || 'green';
+    applyTheme(currentTheme);
+    toast('✅ Berhasil bergabung!');
+    await loadFamily();
+    showScreen('app');
+  } catch(err) {
+    console.error(err);
+    toast('❌ Gagal bergabung: ' + (err.message || String(err)));
+    if (btn) { btn.disabled = false; btn.textContent = '🔗 Bergabung'; }
+  }
 }
+
 
 // ======================================================
 // LOAD FAMILY & LISTENERS
