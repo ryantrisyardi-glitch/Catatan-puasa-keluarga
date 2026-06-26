@@ -123,22 +123,15 @@ textarea{resize:none;height:64px}
 .rec{background:var(--card);border-radius:13px;padding:12px;border:1px solid var(--bdr);margin-bottom:8px;border-left:4px solid var(--bdr)}
 .rec.hutang{border-left-color:var(--amber)}
 .rec.done{border-left-color:var(--p)}
-.rec-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.rec-status{font-size:13px;font-weight:800;display:flex;align-items:center;gap:5px}
-.rec-status.hutang{color:var(--amber)}
-.rec-status.done{color:var(--p)}
+.rec-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
 .rec-name{font-size:13px;font-weight:800;color:var(--text)}
-.rec-pill{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--pl);color:var(--p)}
 .rec-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
 .badge-hutang{background:var(--amber-l);color:var(--amber)}
 .badge-done{background:var(--pl);color:var(--p)}
-.rec-date{font-size:13px;font-weight:700;color:var(--text);margin-top:2px}
 .rec-info{font-size:11px;color:var(--sub);line-height:1.7}
 .rec-note{font-size:11px;font-style:italic;color:var(--sub);background:var(--bg);padding:5px 8px;border-radius:6px;margin-top:5px}
-.rec-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px}
-.rec-actions.single{grid-template-columns:1fr}
-.act-btn{padding:9px 6px;border-radius:9px;border:1px solid var(--bdr);background:var(--card);font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text);text-align:center}
-.act-btn.solid{background:var(--p);border-color:var(--p);color:#fff}
+.rec-actions{display:flex;gap:6px;margin-top:8px}
+.act-btn{padding:5px 10px;border-radius:7px;border:1px solid var(--bdr);background:transparent;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--sub)}
 
 /* SORT / FILTER */
 .filter-row{display:flex;gap:8px}
@@ -300,7 +293,7 @@ textarea{resize:none;height:64px}
   <div class="bottom-nav">
     <div class="nav-i active" id="nav-home" onclick="setTab('catat');setNav('home')"><span class="nav-icon">🏠</span>Home</div>
     <div class="nav-i" id="nav-members" onclick="openMembersModal()"><span class="nav-icon">👥</span>Anggota</div>
-    <div class="nav-i" id="nav-export" onclick="confirmExportExcel()"><span class="nav-icon">📊</span>Export</div>
+    <div class="nav-i" id="nav-export" onclick="openExportModal()"><span class="nav-icon">📊</span>Export</div>
     <div class="nav-i" id="nav-cfg" onclick="setTab('settings');setNav('cfg')"><span class="nav-icon">⚙️</span>Setting</div>
   </div>
 </div>
@@ -356,7 +349,7 @@ let unread = 0;
 let lastSeenChat = parseInt(localStorage.getItem('lsc') || '0');
 
 // listeners to detach
-let _membersRef = null, _recordsRef = null, _activitiesRef = null, _bgChatRef = null;
+let _membersRef = null, _recordsRef = null, _activitiesRef = null;
 
 // ======================================================
 // INIT — AUTH STATE
@@ -505,7 +498,6 @@ async function joinFamily() {
     await db.ref('families/' + fid + '/members/' + uid).set({ name: jname, role: 'member', joinedAt: Date.now() });
     await db.ref('users/' + uid).set({ name: jname, familyId: fid, role: 'member' });
     await db.ref('invites/' + code + '/used').set(true);
-    await db.ref('families/' + fid + '/activeInvite/used').set(true);
     myProfile = { name: jname, familyId: fid, role: 'member' };
     familyId  = fid;
     currentTheme = localStorage.getItem('theme_' + uid) || 'green';
@@ -520,23 +512,23 @@ async function joinFamily() {
   }
 }
 
-
 // ======================================================
 // LOAD FAMILY & LISTENERS
 // ======================================================
 async function loadFamily() {
-  detachListeners(); // prevent duplicate/stacked listeners if this runs more than once
   const fsnap = await db.ref('families/' + familyId).get();
   if (!fsnap.exists()) return;
   familyData = fsnap.val();
   members    = familyData.members || {};
   isSuperAdmin = familyData.superadmin === me.uid;
 
+  // set log tab visibility only for superadmin
+  const logTab = document.getElementById('tab-log');
+  if (logTab) logTab.style.display = isSuperAdmin ? 'flex' : 'none';
+
   // header
   document.getElementById('hdr-family-name').textContent = '🕌 ' + familyData.name;
   document.getElementById('hdr-user-btn').textContent = '👤 ' + myProfile.name;
-  const logTab = document.getElementById('tab-log');
-  if (logTab) logTab.style.display = isSuperAdmin ? '' : 'none';
 
   // realtime records — listen to each member
   _recordsRef = db.ref('families/' + familyId + '/records');
@@ -570,7 +562,6 @@ function detachListeners() {
   if (_recordsRef)    _recordsRef.off();
   if (_membersRef)    _membersRef.off();
   if (_activitiesRef) _activitiesRef.off();
-  if (_bgChatRef)      _bgChatRef.off();
   detachChat();
 }
 
@@ -597,7 +588,6 @@ function updateHeader() {
 // TABS
 // ======================================================
 function setTab(tab) {
-  if (tab === 'log' && !isSuperAdmin) { toast('❌ Log hanya untuk Kepala Keluarga'); return; }
   if (currentTab === 'chat' && tab !== 'chat') detachChat();
   currentTab = tab;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -654,7 +644,6 @@ function renderDashboard() {
 
 // ---- CATAT ----
 function renderCatat() {
-  // Who can be selected: superadmin can pick any, member only self
   const memberOpts = isSuperAdmin
     ? Object.entries(members).map(([uid,m]) => `<option value="${uid}" ${uid===me.uid?'selected':''}>${m.name}</option>`).join('')
     : `<option value="${me.uid}">${myProfile.name}</option>`;
@@ -684,7 +673,6 @@ function renderCatat() {
 
 // ---- RIWAYAT ----
 function renderRiwayat() {
-  // flatten all records
   let flat = [];
   Object.entries(records).forEach(([uid, recs]) => {
     Object.entries(recs || {}).forEach(([rid, r]) => {
@@ -701,43 +689,48 @@ function renderRiwayat() {
     case 'hutang_terbaru': flat.sort((a,b)=>{ if(a.status!==b.status) return a.status==='hutang'?-1:1; return b.date.localeCompare(a.date); }); break;
     case 'hutang_terlama': flat.sort((a,b)=>{ if(a.status!==b.status) return a.status==='hutang'?-1:1; return a.date.localeCompare(b.date); }); break;
     case 'lunas_terbaru':  flat.sort((a,b)=>{ if(a.status!==b.status) return a.status==='done'?-1:1; return (b.finishDate||b.date).localeCompare(a.finishDate||a.date); }); break;
-    case 'lunas_terlama':  flat.sort((a,b)=>{ if(a.status!==b.status) return a.status==='done'?-1:1; return (a.finishDate||a.date).localeCompare(b.finishDate||b.date); }); break;
     case 'date_desc':      flat.sort((a,b)=>b.date.localeCompare(a.date)); break;
     case 'date_asc':       flat.sort((a,b)=>a.date.localeCompare(b.date)); break;
   }
 
   const memberOpts = Object.entries(members).map(([uid,m])=>`<option value="${uid}" ${filterUser===uid?'selected':''}>${m.name}</option>`).join('');
-  const sortBtns = [['hutang_terbaru','⚠️ Hutang Terbaru'],['hutang_terlama','⚠️ Hutang Terlama'],['lunas_terbaru','✅ Lunas Terbaru'],['lunas_terlama','✅ Lunas Terlama'],['date_desc','📅 Semua↓'],['date_asc','📅 Semua↑']]
+  const sortBtns = [['hutang_terbaru','⚠️ Hutang↓'],['hutang_terlama','⚠️ Hutang↑'],['lunas_terbaru','✅ Lunas↓'],['date_desc','📅 Semua↓'],['date_asc','📅 Semua↑']]
     .map(([k,l])=>`<button class="sort-btn${sortMode===k?' active':''}" onclick="setSort('${k}')">${l}</button>`).join('');
 
   const canEditOthers = isSuperAdmin;
 
   const items = flat.map(r => {
+    const isDone = r.status === 'done';
     const canAct = r.uid === me.uid || canEditOthers;
+    
     let actBtns = '';
     if (canAct) {
-      if (r.status === 'hutang') {
-        actBtns = `<div class="rec-actions">
-          <button class="act-btn solid" onclick="openFinish('${r.uid}','${r.rid}')">✅ Selesaikan</button>
-          <button class="act-btn" style="color:var(--blue)" onclick="openEdit('${r.uid}','${r.rid}')">✏️ Edit</button>
-          <button class="act-btn" style="color:var(--red)" onclick="openDelete('${r.uid}','${r.rid}')">🗑 Hapus</button>
-        </div>`;
+      if (!isDone) {
+        actBtns = `
+          <button class="btn btn-p" style="flex:1; padding:8px; border-radius:8px; font-size:12px; border:none; margin:0; font-weight:700;" onclick="openFinish('${r.uid}','${r.rid}')">Selesaikan</button>
+          <button style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--bdr); background:#fff; color:var(--blue); font-size:12px; margin:0; font-weight:700;" onclick="openEdit('${r.uid}','${r.rid}')">Edit</button>
+          <button style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--bdr); background:#fff; color:var(--red); font-size:12px; margin:0; font-weight:700;" onclick="openDelete('${r.uid}','${r.rid}')">Hapus</button>
+        `;
       } else {
-        actBtns = `<div class="rec-actions single">
-          <button class="act-btn" style="color:var(--blue)" onclick="openEdit('${r.uid}','${r.rid}')">✏️ Edit</button>
-        </div>`;
+        actBtns = `
+          <button style="width:100%; padding:8px; border-radius:8px; border:1px solid var(--bdr); background:#fff; color:var(--blue); font-size:12px; margin:0; font-weight:700;" onclick="openEdit('${r.uid}','${r.rid}')">Edit</button>
+        `;
       }
     }
-    return `<div class="rec ${r.status}">
-      <div class="rec-top">
-        <div class="rec-status ${r.status}">${r.status==='done'?'✅ LUNAS':'⚠️ HUTANG'}</div>
-        <span class="rec-pill">${r.ownerName}</span>
+
+    return `
+    <div class="rec" style="border-left: 4px solid var(--${isDone ? 'p' : 'amber'}); background: var(--card); padding: 12px; margin-bottom: 12px; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+        <div style="font-weight:800; color:var(--${isDone ? 'p' : 'amber'}); font-size:14px; display:flex; align-items:center; gap:4px;">
+          ${isDone ? '✅ LUNAS' : '⚠️ HUTANG'}
+        </div>
+        <div style="background:var(--${isDone ? 'pl' : 'amber-l'}); color:var(--${isDone ? 'p' : 'amber'}); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:800;">${r.ownerName}</div>
       </div>
-      <div class="rec-date">Tgl Hutang: ${fmtDate(r.date)}</div>
-      <div class="rec-info">Ramadan ${r.year||'-'}</div>
-      ${r.status==='done'?`<div class="rec-info" style="color:var(--p);font-weight:700">✅ Lunas: ${fmtDate(r.finishDate)}</div>`:''}
-      ${r.note?`<div class="rec-note">"${r.note}"</div>`:''}
-      ${actBtns}
+      <div style="font-size:12px; font-weight:700; color:var(--text);">Tgl Hutang: <span style="font-weight:400">${fmtDate(r.date)}</span></div>
+      <div style="font-size:12px; color:var(--sub); margin-bottom: ${r.note ? '4px' : '12px'};">Ramadan ${r.year||'-'}</div>
+      ${isDone ? `<div style="font-size:12px; font-weight:700; color:var(--p); margin-bottom: ${r.note ? '4px' : '12px'};">Tgl Lunas: <span style="font-weight:400">${fmtDate(r.finishDate)}</span></div>` : ''}
+      ${r.note ? `<div style="font-style:italic; font-size:12px; color:var(--sub); background:var(--bg); padding:6px 8px; border-radius:6px; margin-bottom:12px;">"${r.note}"</div>` : ''}
+      ${canAct ? `<div style="display:flex; gap:8px;">${actBtns}</div>` : ''}
     </div>`;
   }).join('');
 
@@ -745,7 +738,7 @@ function renderRiwayat() {
     <div class="card">
       <div class="filter-row">
         <select onchange="filterUser=this.value;renderContent()">
-          <option value="all" ${filterUser==='all'?'selected':''}>Semua</option>${memberOpts}
+          <option value="all" ${filterUser==='all'?'selected':''}>Semua User</option>${memberOpts}
         </select>
         <select onchange="filterStatus=this.value;renderContent()">
           <option value="all" ${filterStatus==='all'?'selected':''}>Semua Status</option>
@@ -779,7 +772,6 @@ function renderChat(c) {
 }
 
 function initEmojiPicker() {
-  // Use emoji-mart if available, else fallback grid
   const panel = document.getElementById('emoji-panel');
   if (!panel) return;
   if (typeof EmojiMart !== 'undefined') {
@@ -792,7 +784,6 @@ function initEmojiPicker() {
     });
     panel.appendChild(picker);
   } else {
-    // fallback: common emojis grid
     const emojis = ['😊','😂','🥰','😍','🤩','😅','😭','🥺','😎','🤔','😴','🥱','🤣','😇','😆','😋','🤭','🤫','😤','😡','🥳','🎉','👍','👎','🙏','❤️','💪','✨','🌟','⭐','🌙','☀️','🌈','🍰','🥘','🕌','🕋','📿','✅','❌'];
     panel.style.cssText = 'display:none;padding:8px;';
     panel.innerHTML = `<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px">${emojis.map(e=>`<span onclick="insertEmoji('${e}')" style="font-size:22px;text-align:center;cursor:pointer;padding:4px;border-radius:6px">${e}</span>`).join('')}</div>`;
@@ -822,48 +813,42 @@ function initChatListener() {
       box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--sub);font-size:12px">Belum ada pesan. Mulai menyapa! 👋</div>';
       return;
     }
+    
     let msgs = [];
-    snap.forEach(c => msgs.push({ id: c.key, ...c.val() }));
+    snap.forEach(c => { msgs.push({ id: c.key, ...c.val() }); });
+    // Pastikan diurutkan berdasarkan waktu agar pesannya terstruktur dengan benar
+    msgs.sort((a, b) => a.time - b.time); 
+
     let html = '';
     let prevDay = '';
     msgs.forEach(m => {
-      try {
-        const d = new Date(m.time || 0);
-        const validDate = !isNaN(d.getTime());
-        const day = validDate ? d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' }) : 'Lainnya';
-        if (day !== prevDay) {
-          html += `<div class="day-sep">${day}</div>`;
-          prevDay = day;
-        }
-        const isMe   = m.senderId === me.uid;
-        const timeStr = validDate ? d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Jakarta' }) : '';
-        const sender  = members[m.senderId]?.name || m.senderName || '?';
-        // can edit/delete if own message and < 6 hours
-        const canManage = isMe && (Date.now() - (m.time || 0) < 6 * 3600 * 1000);
-        const manageBtn = canManage ? `<div class="msg-actions">
-          <button class="msg-act-btn" onclick="editMsg('${m.id}','${escHtml(m.text)}')">✏️</button>
-          <button class="msg-act-btn" onclick="deleteMsg('${m.id}')">🗑</button>
-        </div>` : '';
-        html += `<div class="msg-wrap ${isMe?'me':'other'}">
-          <div class="msg-bubble">
-            ${!isMe?`<div class="msg-sender">${sender}</div>`:''}
-            <div>${escHtml(m.text)}</div>
-            ${m.edited?`<div class="msg-edited">diedit</div>`:''}
-            <div class="msg-time">${timeStr} WIB</div>
-            ${manageBtn}
-          </div>
-        </div>`;
-      } catch (errInner) {
-        console.error('Gagal merender 1 pesan chat (dilewati):', m, errInner);
+      const d   = new Date(m.time);
+      const day = d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      if (day !== prevDay) {
+        html += `<div class="day-sep">${day}</div>`;
+        prevDay = day;
       }
+      const isMe   = m.senderId === me.uid;
+      const timeStr = d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Jakarta' });
+      const sender  = members[m.senderId]?.name || m.senderName || '?';
+      const canManage = isMe && (Date.now() - m.time < 6 * 3600 * 1000);
+      const manageBtn = canManage ? `<div class="msg-actions">
+        <button class="msg-act-btn" onclick="editMsg('${m.id}','${escHtml(m.text)}')">✏️</button>
+        <button class="msg-act-btn" onclick="deleteMsg('${m.id}')">🗑</button>
+      </div>` : '';
+      html += `<div class="msg-wrap ${isMe?'me':'other'}">
+        <div class="msg-bubble">
+          ${!isMe?`<div class="msg-sender">${sender}</div>`:''}
+          <div>${escHtml(m.text)}</div>
+          ${m.edited?`<div class="msg-edited">diedit</div>`:''}
+          <div class="msg-time">${timeStr} WIB</div>
+          ${manageBtn}
+        </div>
+      </div>`;
     });
-    box.innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--sub);font-size:12px">Belum ada pesan. Mulai menyapa! 👋</div>';
+    box.innerHTML = html;
     requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
     if (currentTab === 'chat') markChatRead();
-  }, err => {
-    console.error('Chat listener error:', err);
-    const box = document.getElementById('chat-msgs');
-    if (box) box.innerHTML = `<div style="text-align:center;padding:30px;color:var(--red);font-size:12px">⚠️ Gagal memuat chat: ${err.message || err}<br>Coba keluar-masuk tab Chat lagi.</div>`;
   });
 }
 
@@ -872,8 +857,7 @@ function detachChat() {
 }
 
 function startBgChat() {
-  _bgChatRef = db.ref('families/' + familyId + '/chats').limitToLast(1);
-  _bgChatRef.on('child_added', snap => {
+  db.ref('families/' + familyId + '/chats').limitToLast(1).on('child_added', snap => {
     if (currentTab === 'chat') return;
     const m = snap.val();
     if (m && m.senderId !== me.uid && m.time > lastSeenChat) {
@@ -942,34 +926,15 @@ function updateChatBadge() {
   b.textContent = unread > 99 ? '99+' : unread;
 }
 
-// ---- LOG (superadmin only) ----
+// ---- LOG ----
 function renderLog() {
-  const dlBtn = isSuperAdmin ? `<button class="btn btn-outline" style="margin-bottom:10px" onclick="confirmExportLog()">📥 Download Log (Excel)</button>` : '';
-  if (!activities.length) return `<div class="card">${dlBtn}</div><div class="empty"><div class="empty-icon">📋</div><div>Belum ada aktivitas</div></div>`;
+  if (!activities.length) return '<div class="empty"><div class="empty-icon">📋</div><div>Belum ada aktivitas</div></div>';
   const rows = activities.map(a => `
     <div style="padding:9px 0;border-bottom:1px solid var(--bdr);font-size:12px">
       <span style="font-weight:700;color:var(--p)">${a.user}</span> ${a.action}
       <div style="font-size:10px;color:var(--sub);margin-top:2px">${new Date(a.time).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})}</div>
     </div>`).join('');
-  return `<div class="card">${dlBtn}<h4>🕒 Log Aktivitas</h4>${rows}</div>`;
-}
-
-function confirmExportLog() {
-  if (!isSuperAdmin) { toast('❌ Hanya Kepala Keluarga yang bisa download log'); return; }
-  openModal(`<div class="modal-title">📥 Download Log Aktivitas?</div>
-    <p style="font-size:13px;color:var(--sub);text-align:center;margin-bottom:12px">File Excel berisi ${activities.length} catatan aktivitas akan diunduh ke perangkat Anda.</p>
-    <button class="btn btn-p" onclick="doExportLog()">📥 Ya, Download</button>
-    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
-}
-
-function doExportLog() {
-  closeModal();
-  const flat = activities.map(a => ({ Pengguna: a.user, Aktivitas: a.action, Waktu: new Date(a.time).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'}) }));
-  const ws = XLSX.utils.json_to_sheet(flat);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Log');
-  XLSX.writeFile(wb, `Log_Aktivitas_${familyData?.name||'Family'}.xlsx`);
-  toast('📥 Log diunduh!');
+  return `<div class="card"><h4>🕒 Log Aktivitas</h4>${rows}</div>`;
 }
 
 // ---- SETTINGS ----
@@ -1028,7 +993,6 @@ async function addRecord() {
   const year     = v('f-year');
   const note     = v('f-note');
   if (!date) { toast('Pilih tanggal!'); return; }
-  // member only can add to self
   if (!isSuperAdmin && ownerUid !== me.uid) { toast('❌ Tidak diizinkan!'); return; }
   const rid = db.ref('families/' + familyId + '/records/' + ownerUid).push().key;
   await db.ref('families/' + familyId + '/records/' + ownerUid + '/' + rid).set({
@@ -1061,57 +1025,51 @@ function openEdit(uid, rid) {
   if (!isSuperAdmin && uid !== me.uid) { toast('❌ Tidak diizinkan!'); return; }
   const r = records[uid]?.[rid];
   if (!r) return;
-  const name = members[uid]?.name || '';
-  if (r.status === 'done') {
-    openModal(`<div class="modal-title">✏️ Edit Data ${name}</div>
+  const isDone = r.status === 'done';
+
+  let statusHtml = '';
+  if (isDone) {
+    statusHtml = `
       <label style="display:block;margin:8px 0 4px;font-size:11px;font-weight:700;color:var(--sub)">Status</label>
       <select id="e-status" style="width:100%;padding:10px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text)">
         <option value="done">Tetap Lunas</option>
         <option value="hutang">Kembalikan ke Hutang</option>
       </select>
-      <label style="display:block;margin:8px 0 4px;font-size:11px;font-weight:700;color:var(--sub)">Tanggal Lunas</label>
-      <input type="date" id="e-finish-date" value="${r.finishDate||''}" style="width:100%;padding:10px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text)">
-      <label style="display:block;margin:8px 0 4px;font-size:11px;font-weight:700;color:var(--sub)">Catatan</label>
-      <textarea id="e-note" style="width:100%;padding:10px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);height:70px;resize:none">${r.note||''}</textarea>
-      <button class="btn btn-p" onclick="doEditDone('${uid}','${rid}')">💾 Simpan</button>
-      <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
-  } else {
-    openModal(`<div class="modal-title">✏️ Edit Data ${name}</div>
-      <label style="display:block;margin:8px 0 4px;font-size:11px;font-weight:700;color:var(--sub)">Tanggal Hutang</label>
-      <input type="date" id="e-date" value="${r.date}" style="width:100%;padding:10px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text)">
-      <label style="display:block;margin:8px 0 4px;font-size:11px;font-weight:700;color:var(--sub)">Catatan</label>
-      <textarea id="e-note" style="width:100%;padding:10px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);height:70px;resize:none">${r.note||''}</textarea>
-      <button class="btn btn-p" onclick="doEdit('${uid}','${rid}')">💾 Simpan</button>
-      <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
+    `;
   }
+
+  openModal(`<div class="modal-title">✏️ Edit Data ${members[uid]?.name || ''}</div>
+    ${statusHtml}
+    <label style="display:block;margin:8px 0 4px;font-size:11px;font-weight:700;color:var(--sub)">Tanggal Hutang</label>
+    <input type="date" id="e-date" value="${r.date}" style="width:100%;padding:10px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text)">
+    <label style="display:block;margin:8px 0 4px;font-size:11px;font-weight:700;color:var(--sub)">Catatan</label>
+    <textarea id="e-note" style="width:100%;padding:10px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);height:70px;resize:none">${r.note||''}</textarea>
+    <button class="btn btn-p" onclick="doEdit('${uid}','${rid}')">💾 Simpan</button>
+    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
 }
 
 async function doEdit(uid, rid) {
   const date = document.getElementById('e-date').value;
   const note = document.getElementById('e-note').value;
-  await db.ref('families/' + familyId + '/records/' + uid + '/' + rid).update({ date, note });
-  logActivity(`mengubah data hutang ${members[uid]?.name}`);
-  closeModal();
-  toast('✅ Data diperbarui!');
-}
+  const r = records[uid]?.[rid];
+  let updateData = { date, note };
 
-async function doEditDone(uid, rid) {
-  const status = document.getElementById('e-status').value;
-  const finishDate = document.getElementById('e-finish-date').value;
-  const note = document.getElementById('e-note').value;
-  const update = status === 'hutang'
-    ? { status: 'hutang', finishDate: null, note }
-    : { status: 'done', finishDate, note };
-  await db.ref('families/' + familyId + '/records/' + uid + '/' + rid).update(update);
-  logActivity(status === 'hutang' ? `mengembalikan data ${members[uid]?.name} ke hutang` : `mengubah data lunas ${members[uid]?.name}`);
+  if (r.status === 'done') {
+    const newStatus = document.getElementById('e-status').value;
+    if (newStatus === 'hutang') {
+      updateData.status = 'hutang';
+      updateData.finishDate = null;
+    }
+  }
+
+  await db.ref('families/' + familyId + '/records/' + uid + '/' + rid).update(updateData);
+  logActivity(`mengubah data hutang ${members[uid]?.name}`);
   closeModal();
   toast('✅ Data diperbarui!');
 }
 
 function openDelete(uid, rid) {
   if (!isSuperAdmin && uid !== me.uid) { toast('❌ Tidak diizinkan!'); return; }
-  const r = records[uid]?.[rid];
-  if (r?.status === 'done') { toast('❌ Data yang sudah lunas tidak bisa dihapus. Ubah ke "Kembalikan ke Hutang" lewat Edit jika perlu.'); return; }
   openModal(`<div class="modal-title">Hapus data ini?</div>
     <p style="font-size:13px;color:var(--sub);text-align:center;margin-bottom:12px">Aksi ini tidak bisa dibatalkan.</p>
     <button class="btn btn-red" onclick="doDelete('${uid}','${rid}')">🗑 Hapus</button>
@@ -1176,28 +1134,22 @@ async function doBulk() {
 // INVITE
 // ======================================================
 async function openInvite() {
-  try {
-    const snap = await db.ref('families/' + familyId + '/activeInvite').get();
-    const existing = snap.exists() ? snap.val() : null;
-    if (existing && !existing.used && Date.now() < existing.expiresAt) {
-      showInviteModal(existing.code, existing.expiresAt);
-      return;
-    }
-    const code = Math.random().toString(36).slice(2,8).toUpperCase();
-    const expires = Date.now() + 48 * 3600 * 1000;
-    await db.ref('invites/' + code).set({ familyId, createdBy: me.uid, createdAt: Date.now(), expiresAt: expires, used: false });
-    await db.ref('families/' + familyId + '/activeInvite').set({ code, expiresAt: expires, used: false, createdBy: me.uid });
-    showInviteModal(code, expires);
-  } catch (err) {
-    console.error(err);
-    toast('❌ Gagal membuat kode undangan: ' + (err.message || err));
-  }
-}
+  const famSnap = await db.ref('families/' + familyId + '/activeInvite').get();
+  const active = famSnap.val();
+  let code;
+  const now = Date.now();
 
-function showInviteModal(code, expiresAt) {
-  const sisaJam = Math.max(0, Math.round((expiresAt - Date.now()) / 3600000));
+  if (active && active.expiresAt > now) {
+    code = active.code;
+  } else {
+    code = Math.random().toString(36).slice(2,8).toUpperCase();
+    const expires = now + 48 * 3600 * 1000;
+    await db.ref('invites/' + code).set({ familyId, createdBy: me.uid, createdAt: now, expiresAt: expires, used: false });
+    await db.ref('families/' + familyId + '/activeInvite').set({ code, expiresAt: expires });
+  }
+
   openModal(`<div class="modal-title">🔗 Kode Undangan</div>
-    <div style="font-size:12px;color:var(--sub);text-align:center;margin-bottom:8px">Bagikan kode ini ke anggota keluarga. Berlaku 48 jam sejak dibuat — sisa waktu ~${sisaJam} jam.</div>
+    <div style="font-size:12px;color:var(--sub);text-align:center;margin-bottom:8px">Bagikan kode ini ke anggota keluarga. Berlaku 48 jam.</div>
     <div class="invite-code" id="inv-code">${code}</div>
     <button class="btn btn-p" onclick="copyCode('${code}')">📋 Salin Kode</button>
     <button class="btn btn-outline" onclick="closeModal()">Tutup</button>`);
@@ -1314,17 +1266,15 @@ async function saveMyName() {
 // ======================================================
 // EXPORT
 // ======================================================
-function confirmExportExcel() {
-  let total = 0;
-  Object.values(records).forEach(recs => total += Object.keys(recs || {}).length);
-  openModal(`<div class="modal-title">📊 Download Data Excel?</div>
-    <p style="font-size:13px;color:var(--sub);text-align:center;margin-bottom:12px">File akan berisi ${total} data hutang puasa dari semua anggota keluarga (${Object.keys(members).length} orang), termasuk semua catatan. File akan diunduh ke perangkat Anda.</p>
-    <button class="btn btn-p" onclick="exportExcel()">📥 Ya, Download</button>
-    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
+function openExportModal() {
+  openModal(`<div class="modal-title">📊 Export Data</div>
+    <p style="text-align:center;font-size:12px;color:var(--sub);margin-bottom:12px">Apakah Anda yakin ingin mengunduh catatan keluarga?</p>
+    <button class="btn btn-p" onclick="doExportExcel()">Unduh Excel (Semua User)</button>
+    ${isSuperAdmin ? `<button class="btn btn-amber" style="margin-top:8px" onclick="doExportLog()">Unduh Excel (Log Aktivitas)</button>` : ''}
+    <button class="btn btn-outline" style="margin-top:8px" onclick="closeModal()">Batal</button>`);
 }
 
-function exportExcel() {
-  closeModal();
+function doExportExcel() {
   const flat = [];
   Object.entries(records).forEach(([uid, recs]) => {
     Object.values(recs || {}).forEach(r => {
@@ -1336,6 +1286,21 @@ function exportExcel() {
   XLSX.utils.book_append_sheet(wb, ws, 'Data');
   XLSX.writeFile(wb, `Hutang_Puasa_${familyData?.name||'Family'}.xlsx`);
   toast('📊 File Excel diunduh!');
+  closeModal();
+}
+
+function doExportLog() {
+  const flat = activities.map(a => ({
+    User: a.user,
+    Aktivitas: a.action,
+    Waktu: new Date(a.time).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})
+  }));
+  const ws = XLSX.utils.json_to_sheet(flat);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Log');
+  XLSX.writeFile(wb, `Log_Aktivitas_${familyData?.name||'Family'}.xlsx`);
+  toast('📊 File Log diunduh!');
+  closeModal();
 }
 
 // ======================================================
