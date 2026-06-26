@@ -2,1056 +2,1231 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#085041">
-<title>Hutang Puasa Family v5</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Hutang Puasa Family</title>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<!-- emoji-mart CDN -->
+<script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.5.2/dist/browser.js"></script>
+<!-- xlsx -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 
 /* ===== THEMES ===== */
-:root,
-[data-theme="green"] {
-  --primary:#0F6E56;--primary-mid:#1D9E75;--primary-dark:#085041;--primary-light:#E1F5EE;
-  --header-g1:#085041;--header-g2:#1D9E75;--header-g3:#0F6E56;
-  --amber:#BA7517;--amber-light:#FAEEDA;
-  --bg:#F7F9F8;--card:#FFFFFF;--text:#1a1a1a;--sub:#6B7280;--border:#E5EBE8;
-  --input-bg:#FAFAFA;--blue:#3B82F6;--red:#ef4444;
-  --msg-me-bg:#0F6E56;--msg-other-bg:#e5e7eb;--msg-other-text:#1a1a1a;
-  --tab-active-text:#fff;
+:root,[data-theme="green"]{
+  --p:#0F6E56;--pm:#1D9E75;--pd:#085041;--pl:#E1F5EE;
+  --h1:#085041;--h2:#1D9E75;--h3:#0F6E56;
+  --bg:#F7F9F8;--card:#fff;--text:#111;--sub:#6B7280;--bdr:#E5EBE8;
+  --inp:#FAFAFA;--red:#ef4444;--blue:#3B82F6;--amber:#d97706;--amber-l:#FAEEDA;
+  --me-bg:#0F6E56;--other-bg:#e5e7eb;--other-text:#111;
 }
-[data-theme="dark"] {
-  --primary:#1D9E75;--primary-mid:#1D9E75;--primary-dark:#085041;--primary-light:#0f2e23;
-  --header-g1:#0a1a14;--header-g2:#0f2e23;--header-g3:#0a1a14;
-  --amber:#EF9F27;--amber-light:#2a1f07;
-  --bg:#0d1117;--card:#161b22;--text:#e6edf3;--sub:#8b949e;--border:#30363d;
-  --input-bg:#0d1117;--blue:#58a6ff;--red:#f85149;
-  --msg-me-bg:#1D9E75;--msg-other-bg:#21262d;--msg-other-text:#e6edf3;
-  --tab-active-text:#fff;
+[data-theme="dark"]{
+  --p:#1D9E75;--pm:#1D9E75;--pd:#085041;--pl:#0f2e23;
+  --h1:#0a1a14;--h2:#0f2e23;--h3:#0a1a14;
+  --bg:#0d1117;--card:#161b22;--text:#e6edf3;--sub:#8b949e;--bdr:#30363d;
+  --inp:#0d1117;--red:#f85149;--blue:#58a6ff;--amber:#EF9F27;--amber-l:#2a1f07;
+  --me-bg:#1D9E75;--other-bg:#21262d;--other-text:#e6edf3;
 }
-[data-theme="pink"] {
-  --primary:#c0447a;--primary-mid:#e05f96;--primary-dark:#9a3261;--primary-light:#fce8f1;
-  --header-g1:#9a3261;--header-g2:#e05f96;--header-g3:#c0447a;
-  --amber:#d97706;--amber-light:#fff8e1;
-  --bg:#fdf4f8;--card:#FFFFFF;--text:#2d1a22;--sub:#8b5a72;--border:#f3cfe1;
-  --input-bg:#fef9fb;--blue:#8b5cf6;--red:#ef4444;
-  --msg-me-bg:#c0447a;--msg-other-bg:#f5e6f0;--msg-other-text:#2d1a22;
-  --tab-active-text:#fff;
+[data-theme="pink"]{
+  --p:#c0447a;--pm:#e05f96;--pd:#9a3261;--pl:#fce8f1;
+  --h1:#9a3261;--h2:#e05f96;--h3:#c0447a;
+  --bg:#fdf4f8;--card:#fff;--text:#2d1a22;--sub:#8b5a72;--bdr:#f3cfe1;
+  --inp:#fef9fb;--red:#ef4444;--blue:#8b5cf6;--amber:#d97706;--amber-l:#fff8e1;
+  --me-bg:#c0447a;--other-bg:#f5e6f0;--other-text:#2d1a22;
 }
-[data-theme="ocean"] {
-  --primary:#1a6bbd;--primary-mid:#2d84d4;--primary-dark:#124e8a;--primary-light:#deeeff;
-  --header-g1:#0e3d6e;--header-g2:#1a6bbd;--header-g3:#124e8a;
-  --amber:#e07b00;--amber-light:#fff3dc;
-  --bg:#f0f6fc;--card:#FFFFFF;--text:#0d1117;--sub:#57606a;--border:#d0d7de;
-  --input-bg:#f6f8fa;--blue:#0969da;--red:#cf222e;
-  --msg-me-bg:#1a6bbd;--msg-other-bg:#eaf1fb;--msg-other-text:#0d1117;
-  --tab-active-text:#fff;
-}
-[data-theme="sand"] {
-  --primary:#8B5E3C;--primary-mid:#A97450;--primary-dark:#6B4427;--primary-light:#F5EBE0;
-  --header-g1:#5C3D24;--header-g2:#A97450;--header-g3:#7A4D30;
-  --amber:#C97C26;--amber-light:#FFF3DC;
-  --bg:#FAF6F1;--card:#FFFFFF;--text:#1a1208;--sub:#7D6050;--border:#E8D8C8;
-  --input-bg:#FDF9F5;--blue:#4A7AB5;--red:#C0392B;
-  --msg-me-bg:#8B5E3C;--msg-other-bg:#F2E8DF;--msg-other-text:#1a1208;
-  --tab-active-text:#fff;
+[data-theme="ocean"]{
+  --p:#1a6bbd;--pm:#2d84d4;--pd:#124e8a;--pl:#deeeff;
+  --h1:#0e3d6e;--h2:#1a6bbd;--h3:#124e8a;
+  --bg:#f0f6fc;--card:#fff;--text:#0d1117;--sub:#57606a;--bdr:#d0d7de;
+  --inp:#f6f8fa;--red:#cf222e;--blue:#0969da;--amber:#e07b00;--amber-l:#fff3dc;
+  --me-bg:#1a6bbd;--other-bg:#eaf1fb;--other-text:#0d1117;
 }
 
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;overflow:hidden;transition:background 0.3s,color 0.3s}
-.app{max-width:480px;margin:0 auto;height:100vh;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;font-size:14px}
 
-/* HEADER */
-.header{background:linear-gradient(135deg,var(--header-g1) 0%,var(--header-g2) 60%,var(--header-g3) 100%);padding:12px 16px;flex-shrink:0;transition:background 0.3s}
-.header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.bismillah{font-family:'Amiri',serif;color:rgba(255,255,255,0.9);font-size:18px}
-.header-user-pill{background:rgba(255,255,255,0.2);color:#fff;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid rgba(255,255,255,0.3)}
-.header-title{color:#fff;font-size:16px;font-weight:700;text-align:center;margin-bottom:8px}
-.stats-container{display:flex;flex-direction:column;gap:5px;max-height:110px;overflow-y:auto}
-.prog-row{background:rgba(255,255,255,0.12);border-radius:9px;padding:6px 10px;color:#fff}
-.prog-info{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px;font-weight:600}
-.prog-detail{display:flex;gap:8px;font-size:9px;opacity:0.85;margin-top:2px}
-.prog-bar-bg{height:5px;background:rgba(255,255,255,0.2);border-radius:10px;overflow:hidden}
-.prog-bar-fill{height:100%;background:#fff;border-radius:10px;transition:width 0.5s}
+/* ===== SCREENS ===== */
+.screen{display:none;height:100vh;flex-direction:column;max-width:480px;margin:0 auto;background:var(--bg)}
+.screen.active{display:flex}
+
+/* AUTH SCREEN */
+.auth-wrap{flex:1;overflow-y:auto;padding:32px 24px 40px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.auth-logo{font-family:'Amiri',serif;font-size:52px;margin-bottom:4px;text-align:center}
+.auth-title{font-size:22px;font-weight:800;text-align:center;color:var(--text);margin-bottom:4px}
+.auth-sub{font-size:13px;color:var(--sub);text-align:center;margin-bottom:28px}
+.auth-card{background:var(--card);border-radius:20px;padding:24px;border:1px solid var(--bdr);width:100%;max-width:380px}
+.auth-tabs{display:flex;background:var(--bg);border-radius:12px;padding:3px;margin-bottom:20px}
+.auth-tab{flex:1;padding:8px;text-align:center;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;color:var(--sub);transition:all .2s}
+.auth-tab.active{background:var(--p);color:#fff}
+.field-label{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;margin-top:14px;display:block}
+.field-label:first-child{margin-top:0}
+.inp{width:100%;padding:11px 14px;border:1.5px solid var(--bdr);border-radius:11px;font-family:inherit;font-size:13px;color:var(--text);background:var(--inp);outline:none;transition:border .2s}
+.inp:focus{border-color:var(--p)}
+.btn{width:100%;padding:13px;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;margin-top:16px}
+.btn:active{opacity:.8}
+.btn-p{background:var(--p);color:#fff}
+.btn-outline{background:transparent;border:1.5px solid var(--bdr);color:var(--sub)}
+.btn-red{background:var(--red);color:#fff}
+.btn-amber{background:var(--amber);color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+.divider{display:flex;align-items:center;gap:10px;margin:14px 0;color:var(--sub);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* APP SCREEN */
+.header{background:linear-gradient(135deg,var(--h1),var(--h2) 60%,var(--h3));padding:14px 16px 16px;flex-shrink:0}
+.hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.hdr-bismillah{font-family:'Amiri',serif;color:rgba(255,255,255,.8);font-size:17px}
+.hdr-user{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;cursor:pointer}
+.hdr-title{color:#fff;font-size:16px;font-weight:800;margin-bottom:10px}
+.hdr-stats{display:flex;gap:8px}
+.hdr-stat{flex:1;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);border-radius:11px;padding:8px;text-align:center}
+.hdr-stat-n{font-size:20px;font-weight:800;color:#fff;line-height:1}
+.hdr-stat-l{font-size:9px;color:rgba(255,255,255,.65);margin-top:2px;font-weight:600}
 
 /* TABS */
-.tabs{display:flex;margin:8px 12px 0;background:var(--card);border-radius:12px;padding:3px;border:1px solid var(--border);flex-shrink:0;overflow-x:auto;gap:2px;transition:background 0.3s,border 0.3s}
-.tabs::-webkit-scrollbar{display:none}
-.tab{flex:1;padding:7px 4px;text-align:center;border-radius:9px;font-size:10px;font-weight:600;cursor:pointer;color:var(--sub);white-space:nowrap;min-width:60px;position:relative;transition:all 0.2s}
-.tab.active{background:var(--primary);color:var(--tab-active-text)}
-.unread-badge{position:absolute;top:2px;right:2px;background:#ef4444;color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 2px}
+.tabs{display:flex;margin:10px 12px 0;background:var(--card);border-radius:12px;padding:3px;border:1px solid var(--bdr);flex-shrink:0}
+.tab{flex:1;padding:7px 2px;text-align:center;border-radius:9px;font-size:10px;font-weight:700;cursor:pointer;color:var(--sub);white-space:nowrap;position:relative;transition:all .2s}
+.tab.active{background:var(--p);color:#fff}
+.badge{position:absolute;top:1px;right:2px;background:#ef4444;color:#fff;font-size:7px;font-weight:800;min-width:13px;height:13px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 2px}
 
 /* CONTENT */
-.content{flex:1;overflow-y:auto;padding:10px 12px;padding-bottom:80px;transition:background 0.3s}
+.content{flex:1;overflow-y:auto;padding:10px 12px;padding-bottom:72px}
 .content::-webkit-scrollbar{width:3px}
-.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.content::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px}
+.content.chat-mode{overflow:hidden;padding:0;position:relative}
 
 /* BOTTOM NAV */
-.bottom-nav{background:var(--card);border-top:1px solid var(--border);display:flex;padding:8px 0 env(safe-area-inset-bottom,8px);flex-shrink:0;transition:background 0.3s,border 0.3s}
-.nav-item{flex:1;text-align:center;font-size:10px;font-weight:700;color:var(--sub);cursor:pointer;padding:4px 0}
-.nav-item.active{color:var(--primary)}
+.bottom-nav{position:absolute;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--card);border-top:1px solid var(--bdr);display:flex;padding:6px 0 env(safe-area-inset-bottom,6px)}
+.nav-i{flex:1;text-align:center;cursor:pointer;padding:4px 0;font-size:10px;font-weight:700;color:var(--sub)}
+.nav-i.active{color:var(--p)}
+.nav-icon{font-size:18px;display:block;margin-bottom:1px}
 
-/* CARDS */
-.card{background:var(--card);border-radius:14px;padding:14px;border:1px solid var(--border);margin-bottom:12px;transition:background 0.3s,border 0.3s}
-.filter-box{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.filter-box select{flex:1;min-width:100px;padding:7px 8px;font-size:11px;margin-top:0;background:var(--input-bg);color:var(--text);border-color:var(--border)}
-
-/* SORT ROW */
-.sort-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--sub)}
-.sort-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card);font-size:10px;font-weight:600;cursor:pointer;color:var(--sub);transition:all 0.2s;font-family:inherit}
-.sort-btn.active{background:var(--primary);border-color:var(--primary);color:#fff}
-
-/* LOG ITEMS */
-.log-item{background:var(--card);border-radius:13px;padding:12px;border:1px solid var(--border);margin-bottom:8px;position:relative;transition:background 0.3s,border 0.3s}
-.badge-name{position:absolute;top:12px;right:12px;font-size:9px;padding:3px 8px;border-radius:20px;font-weight:700;background:var(--primary-light);color:var(--primary)}
-.log-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
-.log-btn{flex:1;min-width:70px;padding:7px 6px;border-radius:8px;border:1px solid var(--border);font-size:10px;font-weight:700;cursor:pointer;background:var(--card);color:var(--sub);font-family:inherit;transition:all 0.2s}
-.btn-done{background:var(--primary);color:#fff;border:none}
-
-/* INPUTS */
-input,select,textarea{width:100%;padding:9px 10px;margin-top:5px;border:1.5px solid var(--border);border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;background:var(--input-bg);color:var(--text);outline:none;transition:border 0.2s,background 0.3s}
-input:focus,select:focus,textarea:focus{border-color:var(--primary)}
+/* CARD */
+.card{background:var(--card);border-radius:14px;padding:14px;border:1px solid var(--bdr);margin-bottom:12px}
+h4{font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px}
+label{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.4px;margin-top:10px;display:block}
+label:first-of-type{margin-top:0}
+select,input,textarea{width:100%;padding:9px 11px;margin-top:4px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);outline:none;transition:border .2s;-webkit-appearance:none}
+select:focus,input:focus,textarea:focus{border-color:var(--p)}
 textarea{resize:none;height:64px}
-label{font-size:11px;font-weight:700;color:var(--sub);margin-top:10px;display:block}
-h4{color:var(--text);font-size:14px;font-weight:700}
 
-/* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1000;display:none;align-items:flex-end;justify-content:center}
-.modal-box{background:var(--card);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));width:100%;max-width:480px;max-height:85vh;overflow-y:auto;color:var(--text)}
+/* RECORD ITEMS */
+.rec{background:var(--card);border-radius:13px;padding:12px;border:1px solid var(--bdr);margin-bottom:8px;border-left:4px solid var(--bdr)}
+.rec.hutang{border-left-color:var(--amber)}
+.rec.done{border-left-color:var(--p)}
+.rec-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.rec-name{font-size:13px;font-weight:800;color:var(--text)}
+.rec-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px}
+.badge-hutang{background:var(--amber-l);color:var(--amber)}
+.badge-done{background:var(--pl);color:var(--p)}
+.rec-info{font-size:11px;color:var(--sub);line-height:1.7}
+.rec-note{font-size:11px;font-style:italic;color:var(--sub);background:var(--bg);padding:5px 8px;border-radius:6px;margin-top:5px}
+.rec-actions{display:flex;gap:6px;margin-top:8px}
+.act-btn{padding:5px 10px;border-radius:7px;border:1px solid var(--bdr);background:transparent;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--sub)}
 
-/* TOAST */
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);color:#fff;padding:10px 20px;border-radius:25px;font-size:12px;display:none;z-index:2000;white-space:nowrap;max-width:90%}
+/* SORT / FILTER */
+.filter-row{display:flex;gap:8px}
+.filter-row select{flex:1;margin-top:0}
+.sort-wrap{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.sort-btn{padding:4px 10px;border-radius:20px;border:1px solid var(--bdr);background:var(--card);font-size:10px;font-weight:700;cursor:pointer;color:var(--sub);font-family:inherit;white-space:nowrap}
+.sort-btn.active{background:var(--p);border-color:var(--p);color:#fff}
 
 /* CHAT */
-.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 240px);min-height:300px}
-.chat-messages{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:8px 0}
-.chat-messages::-webkit-scrollbar{width:2px}
-.chat-messages::-webkit-scrollbar-thumb{background:var(--border)}
-.msg{max-width:82%;padding:8px 12px;border-radius:14px;font-size:13px;line-height:1.45;position:relative;word-wrap:break-word}
-.msg.me{align-self:flex-end;background:var(--msg-me-bg);color:#fff;border-bottom-right-radius:3px}
-.msg.other{align-self:flex-start;background:var(--msg-other-bg);color:var(--msg-other-text);border-bottom-left-radius:3px}
-.chat-input-area{display:flex;gap:6px;padding-top:8px;align-items:center;background:var(--card);border-top:1px solid var(--border);padding:8px 0}
-.chat-input-area input{flex:1;padding:10px 14px;border-radius:25px;margin-top:0}
-.emoji-picker{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;font-size:20px;text-align:center;padding:8px}
-.emoji-btn{cursor:pointer;padding:5px;border-radius:6px}
-.chat-day-sep{text-align:center;margin:6px 0;font-size:10px;color:var(--sub);position:relative}
-.chat-day-sep::before,.chat-day-sep::after{content:'';position:absolute;top:50%;width:28%;height:1px;background:var(--border)}
-.chat-day-sep::before{left:0}.chat-day-sep::after{right:0}
-.chat-day-sep span{background:var(--bg);padding:0 8px}
+.chat-wrap{position:absolute;inset:0}
+.chat-msgs{position:absolute;top:0;left:0;right:0;bottom:56px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:10px 12px;-webkit-overflow-scrolling:touch}
+.chat-msgs::-webkit-scrollbar{width:2px}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:2px}
+.chat-bar{position:absolute;bottom:0;left:0;right:0;height:56px;display:flex;gap:6px;align-items:center;background:var(--card);border-top:1px solid var(--bdr);padding:0 10px}
+.chat-inp{flex:1;height:36px;padding:0 12px;border:1.5px solid var(--bdr);border-radius:20px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);outline:none;min-width:0;margin-top:0}
+.chat-inp:focus{border-color:var(--p)}
+.emoji-toggle{width:34px;height:34px;border:1px solid var(--bdr);border-radius:10px;background:var(--bg);cursor:pointer;font-size:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.send-btn{width:34px;height:34px;background:var(--p);border:none;border-radius:10px;color:#fff;font-size:16px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.emoji-panel{position:absolute;bottom:56px;left:0;right:0;z-index:20;background:var(--card);border-top:1px solid var(--bdr);display:none;height:220px;overflow-y:auto}
+.day-sep{text-align:center;margin:10px 0;font-size:10px;color:var(--sub);display:flex;align-items:center;gap:8px}
+.day-sep::before,.day-sep::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.msg-wrap{display:flex;margin-bottom:6px}
+.msg-wrap.me{justify-content:flex-end}
+.msg-wrap.other{justify-content:flex-start}
+.msg-bubble{max-width:78%;padding:8px 11px;border-radius:14px;font-size:13px;line-height:1.45;word-break:break-word;position:relative}
+.msg-wrap.me .msg-bubble{background:var(--me-bg);color:#fff;border-bottom-right-radius:3px}
+.msg-wrap.other .msg-bubble{background:var(--other-bg);color:var(--other-text);border-bottom-left-radius:3px}
+.msg-sender{font-size:9px;font-weight:700;opacity:.7;margin-bottom:3px}
+.msg-time{font-size:8px;opacity:.6;text-align:right;margin-top:3px}
+.msg-edited{font-size:8px;opacity:.5;font-style:italic}
+.msg-actions{display:flex;gap:4px;margin-top:4px;justify-content:flex-end}
+.msg-act-btn{font-size:9px;padding:2px 6px;border-radius:4px;border:none;cursor:pointer;background:rgba(255,255,255,.2);color:inherit;font-family:inherit}
 
-/* THEME PICKER */
-.theme-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
-.theme-dot{width:100%;aspect-ratio:1;border-radius:12px;cursor:pointer;border:3px solid transparent;display:flex;align-items:center;justify-content:center;font-size:18px;transition:transform 0.2s}
-.theme-dot:active{transform:scale(0.9)}
-.theme-dot.selected{border-color:var(--text)}
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:none;align-items:flex-end;justify-content:center}
+.modal-ov.active{display:flex}
+.modal-box{background:var(--card);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto;color:var(--text)}
+.modal-title{font-size:16px;font-weight:800;text-align:center;margin-bottom:16px}
 
-/* ACTIVITY LOG */
-.act-item{font-size:11px;padding:9px;border-bottom:1px solid var(--border)}
-.act-item:last-child{border-bottom:none}
+/* MEMBER LIST */
+.member-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr)}
+.member-item:last-child{border-bottom:none}
+.member-role{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700}
+.role-super{background:var(--amber-l);color:var(--amber)}
+.role-member{background:var(--pl);color:var(--p)}
 
-/* BUTTONS */
-.btn-primary{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;margin-top:12px}
-.btn-secondary{width:100%;padding:10px;border:1px solid var(--border);background:none;color:var(--sub);border-radius:10px;font-weight:600;cursor:pointer;font-family:inherit;font-size:13px;margin-top:8px}
-.btn-amber{background:var(--amber);color:#fff;border:none}
-.btn-blue{background:var(--blue);color:#fff;border:none}
-.btn-red{background:var(--red);color:#fff;border:none}
+/* THEME */
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+.theme-dot{aspect-ratio:1;border-radius:12px;cursor:pointer;border:3px solid transparent;display:flex;align-items:center;justify-content:center;font-size:22px;transition:transform .2s}
+.theme-dot.sel{border-color:var(--text)}
+
+/* INVITE */
+.invite-code{font-family:monospace;font-size:22px;font-weight:800;letter-spacing:4px;text-align:center;padding:16px;background:var(--bg);border-radius:12px;color:var(--p);border:2px dashed var(--p);margin:12px 0}
+
+/* TOAST */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:10px 20px;border-radius:25px;font-size:12px;display:none;z-index:2000;white-space:nowrap;max-width:90%;text-align:center}
+
+/* LOADING */
+.loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:3000}
+.loading-logo{font-family:'Amiri',serif;font-size:64px;margin-bottom:12px}
+.loading-dot{display:flex;gap:6px;margin-top:16px}
+.loading-dot span{width:8px;height:8px;border-radius:50%;background:var(--p);animation:bounce .8s infinite alternate}
+.loading-dot span:nth-child(2){animation-delay:.2s}
+.loading-dot span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{to{transform:translateY(-8px);opacity:.4}}
+
+/* EMPTY */
+.empty{text-align:center;padding:40px 20px;color:var(--sub)}
+.empty-icon{font-size:44px;margin-bottom:10px}
+
+/* PROGRESS */
+.prog-bar-bg{height:6px;background:var(--bdr);border-radius:6px;overflow:hidden;margin-top:4px}
+.prog-bar-fill{height:100%;background:var(--p);border-radius:6px;transition:width .5s}
 </style>
 </head>
 <body>
-<div class="app" id="theApp">
 
-  <div class="header">
-    <div class="header-top">
-      <div class="bismillah">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
-      <button class="header-user-pill" onclick="quickSwitchUser()" id="user-pill">👤 Papa</button>
+<!-- LOADING -->
+<div class="loading" id="loading">
+  <div class="loading-logo">📿</div>
+  <div style="font-weight:800;font-size:18px;color:var(--text)">Hutang Puasa</div>
+  <div style="font-size:12px;color:var(--sub);margin-top:4px">Family App</div>
+  <div class="loading-dot"><span></span><span></span><span></span></div>
+</div>
+
+<!-- AUTH SCREEN -->
+<div class="screen" id="screen-auth">
+  <div class="auth-wrap">
+    <div class="auth-logo">📿</div>
+    <div class="auth-title">Hutang Puasa Family</div>
+    <div class="auth-sub">Catat & kontrol qadha puasa keluarga bersama</div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchAuthTab('login')">Masuk</div>
+        <div class="auth-tab" onclick="switchAuthTab('register')">Daftar</div>
+      </div>
+      <div id="auth-form"></div>
     </div>
-    <div class="header-title">🕌 Hutang Puasa Family</div>
-    <div class="stats-container" id="dashboard-stats"></div>
-  </div>
-
-  <!-- TABS: Catat | Riwayat | Log | Chat | Cloud -->
-  <div class="tabs">
-    <div class="tab active" id="tab-catat" onclick="setTab('catat')">✏️ Catat</div>
-    <div class="tab" id="tab-log" onclick="setTab('log')">📋 Riwayat</div>
-    <div class="tab" id="tab-activity" onclick="setTab('activity')">🕒 Log</div>
-    <div class="tab" id="tab-chat" onclick="setTab('chat')">💬 Chat<span class="unread-badge" id="chat-badge" style="display:none">0</span></div>
-    <div class="tab" id="tab-sync" onclick="setTab('sync')">☁️ Cloud</div>
-  </div>
-
-  <div class="content" id="main-content"></div>
-
-  <div class="bottom-nav">
-    <div class="nav-item active" id="nav-home" onclick="setTab('catat');setActiveNav('home')">🏠 Home</div>
-    <div class="nav-item" id="nav-excel" onclick="exportToExcel()">📊 Excel</div>
-    <div class="nav-item" id="nav-settings" onclick="setTab('sync');setActiveNav('settings')">⚙️ Settings</div>
   </div>
 </div>
 
-<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+<!-- SETUP FAMILY SCREEN -->
+<div class="screen" id="screen-setup">
+  <div style="flex:1;overflow-y:auto;padding:24px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:48px">🏠</div>
+      <div style="font-size:18px;font-weight:800;margin-top:8px">Selamat Datang!</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:4px">Buat keluarga baru atau bergabung dengan kode undangan</div>
+    </div>
+    <div class="card">
+      <h4>🌟 Buat Keluarga Baru</h4>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:12px">Anda akan menjadi Kepala Keluarga (Superadmin)</div>
+      <label class="field-label">Nama Keluarga</label>
+      <input class="inp" id="family-name" placeholder="Contoh: Keluarga Bapak Ahmad">
+      <label class="field-label">Nama Anda</label>
+      <input class="inp" id="owner-name" placeholder="Contoh: Bapak Ahmad">
+      <button class="btn btn-p" onclick="createFamily()">🏠 Buat Keluarga</button>
+    </div>
+    <div class="divider">atau</div>
+    <div class="card">
+      <h4>🔗 Gabung dengan Kode Undangan</h4>
+      <label class="field-label">Kode Undangan (6 digit)</label>
+      <input class="inp" id="invite-code-input" placeholder="Masukkan kode undangan..." maxlength="6" style="text-transform:uppercase;letter-spacing:4px;text-align:center;font-size:18px;font-weight:700">
+      <label class="field-label">Nama Anda</label>
+      <input class="inp" id="join-name" placeholder="Contoh: Ibu Ahmad">
+      <button class="btn btn-blue" onclick="joinFamily()">🔗 Bergabung</button>
+    </div>
+    <button class="btn btn-outline" onclick="signOut()" style="margin-top:8px">Keluar</button>
+  </div>
+</div>
+
+<!-- MAIN APP SCREEN -->
+<div class="screen" id="screen-app" style="position:relative">
+  <div class="header">
+    <div class="hdr-top">
+      <span class="hdr-bismillah">بِسْمِ اللَّهِ</span>
+      <button class="hdr-user" id="hdr-user-btn" onclick="openUserMenu()">👤 ...</button>
+    </div>
+    <div class="hdr-title" id="hdr-family-name">🕌 Hutang Puasa Family</div>
+    <div class="hdr-stats" id="hdr-stats"></div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" id="tab-catat" onclick="setTab('catat')">✏️ Catat</div>
+    <div class="tab" id="tab-riwayat" onclick="setTab('riwayat')">📋 Riwayat</div>
+    <div class="tab" id="tab-chat" onclick="setTab('chat')">💬 Chat<span class="badge" id="chat-badge" style="display:none">0</span></div>
+    <div class="tab" id="tab-log" onclick="setTab('log')">🕒 Log</div>
+    <div class="tab" id="tab-settings" onclick="setTab('settings')">⚙️</div>
+  </div>
+  <div class="content" id="main-content"></div>
+  <div class="bottom-nav">
+    <div class="nav-i active" id="nav-home" onclick="setTab('catat');setNav('home')"><span class="nav-icon">🏠</span>Home</div>
+    <div class="nav-i" id="nav-members" onclick="openMembersModal()"><span class="nav-icon">👥</span>Anggota</div>
+    <div class="nav-i" id="nav-export" onclick="exportExcel()"><span class="nav-icon">📊</span>Export</div>
+    <div class="nav-i" id="nav-cfg" onclick="setTab('settings');setNav('cfg')"><span class="nav-icon">⚙️</span>Setting</div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-ov" id="modal" onclick="closeModalOutside(event)">
   <div class="modal-box" id="modal-content"></div>
 </div>
 
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ============================================================
-// FIREBASE
-// ============================================================
-const firebaseConfig = {
+// ======================================================
+// FIREBASE CONFIG
+// ======================================================
+const fbConfig = {
   apiKey: "AIzaSyDDLpfpWzmwAS5-oeFW8jyq4Y7YZsVo4-g",
   authDomain: "hutang-puasa.firebaseapp.com",
   databaseURL: "https://hutang-puasa-default-rtdb.firebaseio.com",
   projectId: "hutang-puasa",
-  storageBucket: "hutang-puasa.firebasestorage.app",
+  storageBucket: "hutang-puasa.appspot.com",
   messagingSenderId: "889099979356",
   appId: "1:889099979356:web:9b1481ec46da4425a57499"
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+firebase.initializeApp(fbConfig);
+const auth = firebase.auth();
+const db   = firebase.database();
 
-// ============================================================
-// CONSTANTS
-// ============================================================
-const ADMIN_PIN = "356652";
-const THEMES = {
-  green: { label: "Hijau", icon: "🌿" },
-  pink:  { label: "Pink",  icon: "🌸" },
-  ocean: { label: "Laut",  icon: "🌊" },
-  sand:  { label: "Pasir", icon: "🏜️" },
-  dark:  { label: "Gelap", icon: "🌙" }
-};
+// ======================================================
+// STATE
+// ======================================================
+let me = null;           // { uid, email, displayName }
+let myProfile = null;    // { name, familyId, role }
+let familyData = null;   // { name, superadmin, members:{uid:{name,role}} }
+let familyId   = null;
+let isSuperAdmin = false;
 
-// ============================================================
-// STATE — load semua dari localStorage per-user
-// ============================================================
-let myName = localStorage.getItem('hp_user_name') || 'Papa';
-let syncId  = localStorage.getItem('hp_sync_id')   || '';
-
-function userKey(k) { return `hp_${myName}_${k}`; }
-
-let records    = JSON.parse(localStorage.getItem('hp_v4_data')    || '[]');
-let profiles   = JSON.parse(localStorage.getItem('hp_profiles')   || '["Papa","Ibu"]');
-let activities = JSON.parse(localStorage.getItem('hp_activities') || '[]');
-
-// Per-user theme
-let currentTheme = localStorage.getItem(userKey('theme')) || 'green';
-
-// Filter & sort
-let filterUser   = 'all';
-let filterStatus = 'all';
-let sortMode     = 'hutang_terbaru';  // default: hutang terbaru ke terlama
-
-// Chat state
-let unreadCount    = 0;
-let lastSeenChatTime = parseInt(localStorage.getItem('hp_last_seen_chat') || '0');
-let notifSound     = null;
-let notifPermission = false;
-let isAdminAuthenticated = localStorage.getItem('hp_admin_auth') === 'true';
+let records    = {};
+let activities = [];
+let members    = {};
 
 let currentTab = 'catat';
-let dbListenerRef = null;
+let filterUser = 'all';
+let filterStatus = 'all';
+let sortMode = 'hutang_terbaru';
+let currentTheme = 'green';
 
-const emojis = ["😊","😇","🙏","👍","✨","🌙","⭐","🕋","🕌","📅","✅","❌","💪","❤️","🤲","😅","😭","🥘","🥤","🍰"];
+// chat
+let _chatRef = null;
+let _chatHandler = null;
+let unread = 0;
+let lastSeenChat = parseInt(localStorage.getItem('lsc') || '0');
 
-// ============================================================
-// THEME
-// ============================================================
-function applyTheme(theme) {
-  currentTheme = theme;
-  document.getElementById('theApp').setAttribute('data-theme', theme);
-  document.body.setAttribute('data-theme', theme);
-  localStorage.setItem(userKey('theme'), theme);
-}
+// listeners to detach
+let _membersRef = null, _recordsRef = null, _activitiesRef = null;
 
-// ============================================================
-// INIT
-// ============================================================
-(function init() {
-  applyTheme(currentTheme);
-  updateUserPill();
-  updateStats();
-  renderContent();
-  initNotif();
-  if (syncId) setupFirebaseListener();
-  startBackgroundChatListener();
-})();
-
-// ============================================================
-// USER PILL & QUICK SWITCH
-// ============================================================
-function updateUserPill() {
-  const el = document.getElementById('user-pill');
-  if (el) el.textContent = '👤 ' + myName;
-}
-
-function quickSwitchUser() {
-  let html = '<h4 style="margin-bottom:12px;text-align:center">Ganti Pengguna</h4>';
-  html += '<div style="display:flex;flex-direction:column;gap:8px">';
-  profiles.forEach(p => {
-    const active = p === myName ? ` style="background:var(--primary);color:#fff"` : '';
-    html += `<button class="btn-secondary"${active} onclick="switchUser('${p}')" style="margin-top:0">${p === myName ? '✅ ' : ''}${p}</button>`;
-  });
-  html += `</div><button class="btn-secondary" onclick="closeModal()">Batal</button>`;
-  openModal(html);
-}
-
-function switchUser(name) {
-  myName = name;
-  localStorage.setItem('hp_user_name', name);
-  // Load tema user
-  currentTheme = localStorage.getItem(userKey('theme')) || 'green';
-  applyTheme(currentTheme);
-  updateUserPill();
-  closeModal();
-  showToast('👤 Beralih ke ' + name);
-  renderContent();
-}
-
-// ============================================================
-// FIREBASE LISTENER
-// ============================================================
-function setupFirebaseListener() {
-  if (!syncId) return;
-  if (dbListenerRef) dbListenerRef.off();
-  dbListenerRef = db.ref('sync/' + syncId + '/data');
-  dbListenerRef.on('value', (s) => {
-    if (s.val()) {
-      records    = s.val().records    || [];
-      profiles   = s.val().profiles   || ["Papa","Ibu"];
-      activities = s.val().activities || [];
-      localStorage.setItem('hp_v4_data',    JSON.stringify(records));
-      localStorage.setItem('hp_profiles',   JSON.stringify(profiles));
-      localStorage.setItem('hp_activities', JSON.stringify(activities));
-      updateStats();
-      if (currentTab !== 'chat') renderContent();
-    }
-  });
-}
-
-function startBackgroundChatListener() {
-  if (!syncId) return;
-  db.ref('sync/' + syncId + '/chats').limitToLast(1).on('child_added', (s) => {
-    if (currentTab === 'chat') return;
-    const m = s.val();
-    if (m && m.sender !== myName && m.time > lastSeenChatTime) {
-      showPushNotif(m.sender, m.text);
-    }
-  });
-}
-
-// ============================================================
-// SAVE
-// ============================================================
-function save(actionDesc) {
-  localStorage.setItem('hp_v4_data',    JSON.stringify(records));
-  localStorage.setItem('hp_profiles',   JSON.stringify(profiles));
-  if (actionDesc) {
-    const log = { user: myName, action: actionDesc, time: Date.now() };
-    activities.unshift(log);
-    if (activities.length > 500) activities.pop();
-    localStorage.setItem('hp_activities', JSON.stringify(activities));
+// ======================================================
+// INIT — AUTH STATE
+// ======================================================
+auth.onAuthStateChanged(async user => {
+  if (!user) {
+    showScreen('auth');
+    renderAuthForm('login');
+    return;
   }
-  if (syncId) db.ref('sync/' + syncId + '/data').set({ records, profiles, activities });
-  updateStats();
+  me = { uid: user.uid, email: user.email, displayName: user.displayName };
+  // load user profile
+  const snap = await db.ref('users/' + user.uid).get();
+  if (!snap.exists() || !snap.val().familyId) {
+    showScreen('setup');
+    return;
+  }
+  myProfile = snap.val();
+  familyId  = myProfile.familyId;
+  currentTheme = localStorage.getItem('theme_' + user.uid) || 'green';
+  applyTheme(currentTheme);
+  await loadFamily();
+  showScreen('app');
+});
+
+// ======================================================
+// SCREEN
+// ======================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.getElementById('loading').style.display = 'none';
 }
 
-// ============================================================
-// STATS
-// ============================================================
-function updateStats() {
-  const dash = document.getElementById('dashboard-stats');
-  if (!dash) return;
-  let html = '';
-  profiles.forEach(p => {
-    const total  = records.filter(r => r.owner === p).length;
-    const lunas  = records.filter(r => r.owner === p && r.status === 'done').length;
-    const hutang = total - lunas;
-    const persen = total > 0 ? Math.round((lunas / total) * 100) : 0;
-    html += `<div class="prog-row">
-      <div class="prog-info"><span>${p}</span><span>${persen}%</span></div>
-      <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${persen}%"></div></div>
-      <div class="prog-detail"><span>Total: ${total}</span>|<span>Lunas: ${lunas}</span>|<span style="font-weight:700">Sisa: ${hutang}</span></div>
-    </div>`;
+// ======================================================
+// AUTH
+// ======================================================
+let authMode = 'login';
+function switchAuthTab(mode) {
+  authMode = mode;
+  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (i===0&&mode==='login')||(i===1&&mode==='register')));
+  renderAuthForm(mode);
+}
+
+function renderAuthForm(mode) {
+  const f = document.getElementById('auth-form');
+  if (mode === 'login') {
+    f.innerHTML = `
+      <span class="field-label">Email</span>
+      <input class="inp" id="a-email" type="email" placeholder="email@contoh.com">
+      <span class="field-label">Password</span>
+      <input class="inp" id="a-pass" type="password" placeholder="Minimal 6 karakter">
+      <button class="btn btn-p" onclick="doLogin()">Masuk</button>
+      <button class="btn btn-outline" onclick="doGoogle()" style="margin-top:8px">🔵 Masuk dengan Google</button>`;
+  } else {
+    f.innerHTML = `
+      <span class="field-label">Email</span>
+      <input class="inp" id="a-email" type="email" placeholder="email@contoh.com">
+      <span class="field-label">Password</span>
+      <input class="inp" id="a-pass" type="password" placeholder="Minimal 6 karakter">
+      <span class="field-label">Konfirmasi Password</span>
+      <input class="inp" id="a-pass2" type="password" placeholder="Ulangi password">
+      <button class="btn btn-p" onclick="doRegister()">Daftar Sekarang</button>`;
+  }
+}
+
+async function doLogin() {
+  const email = v('a-email'), pass = v('a-pass');
+  if (!email || !pass) { toast('Isi email dan password!'); return; }
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+  } catch(e) { toast('❌ ' + friendlyError(e.code)); }
+}
+
+async function doRegister() {
+  const email = v('a-email'), pass = v('a-pass'), pass2 = v('a-pass2');
+  if (!email || !pass) { toast('Isi semua kolom!'); return; }
+  if (pass !== pass2) { toast('Password tidak sama!'); return; }
+  if (pass.length < 6) { toast('Password min. 6 karakter!'); return; }
+  try {
+    await auth.createUserWithEmailAndPassword(email, pass);
+  } catch(e) { toast('❌ ' + friendlyError(e.code)); }
+}
+
+async function doGoogle() {
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+  } catch(e) { toast('❌ ' + friendlyError(e.code)); }
+}
+
+function signOut() {
+  detachListeners();
+  auth.signOut();
+}
+
+function friendlyError(code) {
+  const m = { 'auth/user-not-found':'Email tidak ditemukan', 'auth/wrong-password':'Password salah', 'auth/email-already-in-use':'Email sudah terdaftar', 'auth/invalid-email':'Format email salah' };
+  return m[code] || code;
+}
+
+// ======================================================
+// SETUP FAMILY
+// ======================================================
+async function createFamily() {
+  const fname = v('family-name'), oname = v('owner-name');
+  if (!fname || !oname) { toast('Isi nama keluarga & nama Anda!'); return; }
+  const fid = db.ref('families').push().key;
+  const uid = me.uid;
+  await db.ref('families/' + fid).set({
+    name: fname,
+    superadmin: uid,
+    createdAt: Date.now(),
+    members: { [uid]: { name: oname, role: 'superadmin', joinedAt: Date.now() } }
   });
-  dash.innerHTML = html;
+  await db.ref('users/' + uid).set({ name: oname, familyId: fid, role: 'superadmin' });
+  toast('✅ Keluarga berhasil dibuat!');
 }
 
-// ============================================================
+async function joinFamily() {
+  const code = v('invite-code-input').toUpperCase();
+  const jname = v('join-name');
+  if (!code || code.length !== 6) { toast('Kode undangan harus 6 digit!'); return; }
+  if (!jname) { toast('Isi nama Anda!'); return; }
+  const snap = await db.ref('invites/' + code).get();
+  if (!snap.exists()) { toast('❌ Kode undangan tidak valid!'); return; }
+  const inv = snap.val();
+  if (inv.used) { toast('❌ Kode sudah pernah dipakai!'); return; }
+  if (Date.now() > inv.expiresAt) { toast('❌ Kode sudah kedaluwarsa!'); return; }
+  const uid = me.uid;
+  const fid = inv.familyId;
+  await db.ref('families/' + fid + '/members/' + uid).set({ name: jname, role: 'member', joinedAt: Date.now() });
+  await db.ref('users/' + uid).set({ name: jname, familyId: fid, role: 'member' });
+  await db.ref('invites/' + code + '/used').set(true);
+  toast('✅ Berhasil bergabung!');
+}
+
+// ======================================================
+// LOAD FAMILY & LISTENERS
+// ======================================================
+async function loadFamily() {
+  const fsnap = await db.ref('families/' + familyId).get();
+  if (!fsnap.exists()) return;
+  familyData = fsnap.val();
+  members    = familyData.members || {};
+  isSuperAdmin = familyData.superadmin === me.uid;
+
+  // header
+  document.getElementById('hdr-family-name').textContent = '🕌 ' + familyData.name;
+  document.getElementById('hdr-user-btn').textContent = '👤 ' + myProfile.name;
+
+  // realtime records — listen to each member
+  _recordsRef = db.ref('families/' + familyId + '/records');
+  _recordsRef.on('value', snap => {
+    records = snap.val() || {};
+    updateHeader();
+    if (currentTab !== 'chat') renderContent();
+  });
+
+  // realtime members
+  _membersRef = db.ref('families/' + familyId + '/members');
+  _membersRef.on('value', snap => {
+    members = snap.val() || {};
+    updateHeader();
+  });
+
+  // activities
+  _activitiesRef = db.ref('families/' + familyId + '/activities');
+  _activitiesRef.limitToLast(200).on('value', snap => {
+    activities = [];
+    snap.forEach(c => activities.unshift(c.val()));
+  });
+
+  // background chat listener
+  startBgChat();
+
+  renderContent();
+}
+
+function detachListeners() {
+  if (_recordsRef)    _recordsRef.off();
+  if (_membersRef)    _membersRef.off();
+  if (_activitiesRef) _activitiesRef.off();
+  detachChat();
+}
+
+// ======================================================
+// HEADER STATS
+// ======================================================
+function updateHeader() {
+  const el = document.getElementById('hdr-stats');
+  if (!el) return;
+  // my own stats
+  const myRecs = Object.values(records[me.uid] || {});
+  const total  = myRecs.length;
+  const lunas  = myRecs.filter(r => r.status === 'done').length;
+  const sisa   = total - lunas;
+  const pct    = total > 0 ? Math.round(lunas / total * 100) : 0;
+  el.innerHTML = `
+    <div class="hdr-stat"><div class="hdr-stat-n">${total}</div><div class="hdr-stat-l">Total</div></div>
+    <div class="hdr-stat"><div class="hdr-stat-n">${sisa}</div><div class="hdr-stat-l">Sisa</div></div>
+    <div class="hdr-stat"><div class="hdr-stat-n">${lunas}</div><div class="hdr-stat-l">Lunas</div></div>
+    <div class="hdr-stat"><div class="hdr-stat-n">${pct}%</div><div class="hdr-stat-l">Progress</div></div>`;
+}
+
+// ======================================================
 // TABS
-// ============================================================
+// ======================================================
 function setTab(tab) {
+  if (currentTab === 'chat' && tab !== 'chat') detachChat();
   currentTab = tab;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   const el = document.getElementById('tab-' + tab);
   if (el) el.classList.add('active');
+  const c = document.getElementById('main-content');
+  if (tab === 'chat') c.classList.add('chat-mode'); else c.classList.remove('chat-mode');
   renderContent();
 }
 
-function setActiveNav(n) {
-  document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
-  const m = { home:'nav-home', settings:'nav-settings' };
+function setNav(n) {
+  document.querySelectorAll('.nav-i').forEach(x => x.classList.remove('active'));
+  const m = { home:'nav-home', members:'nav-members', export:'nav-export', cfg:'nav-cfg' };
   const el = document.getElementById(m[n]);
   if (el) el.classList.add('active');
 }
 
-// ============================================================
+// ======================================================
 // RENDER CONTENT
-// ============================================================
+// ======================================================
 function renderContent() {
   const c = document.getElementById('main-content');
   if (!c) return;
-
-  // ---- CATAT ----
-  if (currentTab === 'catat') {
-    const today = new Date().toISOString().split('T')[0];
-    const profOpts = profiles.map(p => `<option value="${p}" ${myName===p?'selected':''}>${p}</option>`).join('');
-    const yearOpts = Array.from({length:6}, (_,i) => `<option>${new Date().getFullYear()-i}</option>`).join('');
-    c.innerHTML = `
-      <div class="card">
-        <h4>✏️ Catat Hutang Baru</h4>
-        <label>Milik Siapa?</label>
-        <select id="f-owner">${profOpts}</select>
-        <label>Tanggal Terhutang</label>
-        <input type="date" id="f-date" value="${today}" max="${today}">
-        <label>Tahun Ramadan</label>
-        <select id="f-year">${yearOpts}</select>
-        <label>Catatan (Opsional)</label>
-        <textarea id="f-note" placeholder="Alasan berhalangan..."></textarea>
-        <button class="btn-primary" onclick="preAddRecord()">💾 Simpan Catatan</button>
-      </div>
-      <div class="card" style="background:var(--amber-light);border-color:var(--amber)">
-        <div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:6px">📋 Catat Banyak Hutang Sekaligus?</div>
-        <div style="font-size:11px;color:var(--sub);margin-bottom:10px">Gunakan Catat Massal untuk memasukkan puluhan hutang tanpa satu per satu.</div>
-        <button class="btn-primary btn-amber" onclick="openBulkModal()">📥 Catat Massal</button>
-      </div>`;
-
-  // ---- LOG / RIWAYAT ----
-  } else if (currentTab === 'log') {
-    const profOpts = profiles.map(p => `<option value="${p}" ${filterUser===p?'selected':''}>${p}</option>`).join('');
-    const filtered = getFilteredSorted();
-
-    const sortButtons = [
-      ['hutang_terbaru', '⚠️ Hutang Terbaru'],
-      ['hutang_terlama', '⚠️ Hutang Terlama'],
-      ['lunas_terbaru',  '✅ Lunas Terbaru'],
-      ['lunas_terlama',  '✅ Lunas Terlama'],
-      ['date_desc',      '📅 Semua ↓'],
-      ['date_asc',       '📅 Semua ↑'],
-    ].map(([k,l]) => `<button class="sort-btn${sortMode===k?' active':''}" onclick="setSort('${k}')">${l}</button>`).join('');
-
-    let listHtml = filtered.map(r => `
-      <div class="log-item" style="border-left:4px solid ${r.status==='done'?'var(--primary)':'var(--amber)'}">
-        <span class="badge-name">${r.owner}</span>
-        <div style="font-weight:700;color:${r.status==='done'?'var(--primary)':'var(--amber)'}">${r.status==='done'?'✅ LUNAS':'⚠️ HUTANG'}</div>
-        <div style="font-size:12px;margin-top:4px"><b>Tgl Hutang:</b> ${formatDate(r.date)}</div>
-        ${r.status==='done'?`<div style="font-size:12px;color:var(--primary)"><b>Tgl Lunas:</b> ${formatDate(r.finishDate)}</div>`:''}
-        <div style="font-size:11px;color:var(--sub)">Ramadan ${r.year||'-'}</div>
-        ${r.note?`<div style="font-size:11px;font-style:italic;margin-top:5px;padding:5px;background:var(--bg);border-radius:6px;color:var(--sub)">"${r.note}"</div>`:''}
-        <div class="log-actions">
-          ${r.status==='hutang'?`<button class="log-btn btn-done" onclick="preOpenFinish(${r.id})">Selesaikan</button>`:''}
-          <button class="log-btn" style="color:var(--blue)" onclick="preEdit(${r.id})">Edit</button>
-          <button class="log-btn" style="color:var(--red)" onclick="preDelete(${r.id})">Hapus</button>
-        </div>
-      </div>`).join('');
-
-    c.innerHTML = `
-      <div class="card">
-        <div class="filter-box">
-          <select onchange="updateFilter('user',this.value)">
-            <option value="all">Semua User</option>${profOpts}
-          </select>
-          <select onchange="updateFilter('status',this.value)">
-            <option value="all" ${filterStatus==='all'?'selected':''}>Semua Status</option>
-            <option value="hutang" ${filterStatus==='hutang'?'selected':''}>Hutang</option>
-            <option value="done" ${filterStatus==='done'?'selected':''}>Lunas</option>
-          </select>
-        </div>
-        <div class="sort-row" style="margin-top:10px">${sortButtons}</div>
-      </div>
-      ${listHtml || '<center style="color:var(--sub);margin-top:40px;padding:20px">Tidak ada data ditemukan</center>'}`;
-
-  // ---- ACTIVITY LOG ----
-  } else if (currentTab === 'activity') {
-    const logHtml = activities.map(a =>
-      `<div class="act-item"><span style="font-weight:700;color:var(--primary)">${a.user}</span> ${a.action}<div style="font-size:10px;color:var(--sub);margin-top:2px">${new Date(a.time).toLocaleString('id-ID')}</div></div>`
-    ).join('');
-    c.innerHTML = `
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <h4>🕒 Log Aktivitas</h4>
-          <button onclick="exportLogs()" style="font-size:10px;padding:5px 10px;background:var(--blue);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit">Export</button>
-        </div>
-        ${logHtml || '<center style="color:var(--sub);padding:20px">Kosong</center>'}
-      </div>`;
-
-  // ---- CHAT ----
-  } else if (currentTab === 'chat') {
-    markChatRead();
-    if (!syncId) {
-      c.innerHTML = `<div class="card" style="text-align:center;padding:30px">
-        <div style="font-size:40px;margin-bottom:12px">💬</div>
-        <div style="font-weight:700;margin-bottom:8px">Chat Belum Aktif</div>
-        <div style="font-size:12px;color:var(--sub)">Set Sync ID dulu di tab ☁️ Cloud untuk mengaktifkan chat keluarga.</div>
-      </div>`;
-      return;
-    }
-    c.innerHTML = `
-      <div class="chat-wrap">
-        <div class="chat-messages" id="chat-msgs">
-          <center style="color:var(--sub);padding:20px;font-size:12px">Menghubungkan...</center>
-        </div>
-        <div id="emoji-panel" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:4px">
-          <div class="emoji-picker">${emojis.map(e => `<span class="emoji-btn" onclick="insertEmoji('${e}')">${e}</span>`).join('')}</div>
-        </div>
-        <div class="chat-input-area">
-          <button onclick="toggleEmoji()" style="background:var(--bg);border:1px solid var(--border);padding:9px 11px;border-radius:10px;cursor:pointer;font-size:16px;flex-shrink:0">😊</button>
-          <input type="text" id="chat-input" placeholder="Pesan sebagai ${myName}..." onkeypress="if(event.key==='Enter')sendChat()" style="flex:1">
-          <button onclick="sendChat()" style="background:var(--primary);color:#fff;border:none;padding:9px 14px;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0">Kirim</button>
-        </div>
-      </div>`;
-    initChatListener();
-
-  // ---- SYNC / SETTINGS ----
-  } else if (currentTab === 'sync') {
-    const profOpts = profiles.map(p => `<option value="${p}" ${myName===p?'selected':''}>${p}</option>`).join('');
-    const profList = profiles.map(p => `
-      <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);align-items:center">
-        <span>${p}</span>
-        <span onclick="preRemoveProfile('${p}')" style="color:var(--red);cursor:pointer;font-size:12px">Hapus</span>
-      </div>`).join('');
-
-    // Theme picker
-    const themeGrid = Object.entries(THEMES).map(([k,t]) => {
-      const colors = {
-        green: 'background:linear-gradient(135deg,#085041,#1D9E75)',
-        pink:  'background:linear-gradient(135deg,#9a3261,#e05f96)',
-        ocean: 'background:linear-gradient(135deg,#0e3d6e,#2d84d4)',
-        sand:  'background:linear-gradient(135deg,#5C3D24,#A97450)',
-        dark:  'background:linear-gradient(135deg,#0a1a14,#1D9E75)'
-      };
-      const sel = currentTheme === k ? ' selected' : '';
-      return `<div class="theme-dot${sel}" style="${colors[k]}" onclick="pickTheme('${k}')" title="${t.label}">
-        <span style="font-size:18px">${t.icon}</span>
-      </div>`;
-    }).join('');
-
-    c.innerHTML = `
-      <div class="card">
-        <h4>☁️ Sinkronisasi</h4>
-        <label>ID Keluarga (Sync ID)</label>
-        <input type="text" id="sync-input" value="${syncId}" placeholder="Masukkan ID yang sama di semua HP">
-        <label>Nama Anda</label>
-        <select id="name-input">${profOpts}</select>
-        <button class="btn-primary btn-blue" onclick="preApplySync()">💾 Simpan & Sync</button>
-        ${isAdminAuthenticated ? `<button class="btn-primary btn-red" onclick="logoutAdmin()" style="margin-top:8px">🔒 Logout Admin</button>` : ''}
-      </div>
-      <div class="card">
-        <h4>🎨 Tema Tampilan</h4>
-        <div style="font-size:11px;color:var(--sub);margin:6px 0 4px">Tema tersimpan per pengguna. Pilih tema untuk <b>${myName}</b>:</div>
-        <div class="theme-grid">${themeGrid}</div>
-        <div style="font-size:10px;color:var(--sub);margin-top:8px;text-align:center">Tema aktif: <b>${THEMES[currentTheme].label} ${THEMES[currentTheme].icon}</b></div>
-      </div>
-      <div class="card">
-        <h4>👥 Kelola Profil</h4>
-        <div id="prof-list" style="margin:8px 0">${profList}</div>
-        <input type="text" id="new-prof-name" placeholder="Nama anggota baru...">
-        <button class="btn-secondary" onclick="addProfile()" style="border-color:var(--primary);color:var(--primary)">+ Tambah Profil</button>
-      </div>`;
-  }
+  if (currentTab === 'catat')    c.innerHTML = renderCatat();
+  else if (currentTab === 'riwayat') c.innerHTML = renderRiwayat();
+  else if (currentTab === 'chat')    { renderChat(c); return; }
+  else if (currentTab === 'log')     c.innerHTML = renderLog();
+  else if (currentTab === 'settings') c.innerHTML = renderSettings();
 }
 
-// ============================================================
-// SORT & FILTER HELPERS
-// ============================================================
-function getFilteredSorted() {
-  let filtered = records.filter(r => {
-    const matchUser   = filterUser   === 'all' || r.owner  === filterUser;
-    const matchStatus = filterStatus === 'all' || r.status === filterStatus;
-    return matchUser && matchStatus;
-  });
+// ---- CATAT ----
+function renderCatat() {
+  // Who can be selected: superadmin can pick any, member only self
+  const memberOpts = isSuperAdmin
+    ? Object.entries(members).map(([uid,m]) => `<option value="${uid}" ${uid===me.uid?'selected':''}>${m.name}</option>`).join('')
+    : `<option value="${me.uid}">${myProfile.name}</option>`;
 
-  // Sort logic
-  switch (sortMode) {
-    case 'hutang_terbaru':
-      // Hutang dulu (desc date), lalu done
-      filtered.sort((a, b) => {
-        if (a.status !== b.status) return a.status === 'hutang' ? -1 : 1;
-        if (a.status === 'hutang') return b.date.localeCompare(a.date);
-        return b.date.localeCompare(a.date);
-      });
-      break;
-    case 'hutang_terlama':
-      filtered.sort((a, b) => {
-        if (a.status !== b.status) return a.status === 'hutang' ? -1 : 1;
-        if (a.status === 'hutang') return a.date.localeCompare(b.date);
-        return a.date.localeCompare(b.date);
-      });
-      break;
-    case 'lunas_terbaru':
-      filtered.sort((a, b) => {
-        if (a.status !== b.status) return a.status === 'done' ? -1 : 1;
-        const da = a.finishDate || a.date;
-        const db_ = b.finishDate || b.date;
-        return db_.localeCompare(da);
-      });
-      break;
-    case 'lunas_terlama':
-      filtered.sort((a, b) => {
-        if (a.status !== b.status) return a.status === 'done' ? -1 : 1;
-        const da = a.finishDate || a.date;
-        const db_ = b.finishDate || b.date;
-        return da.localeCompare(db_);
-      });
-      break;
-    case 'date_desc':
-      filtered.sort((a, b) => b.date.localeCompare(a.date));
-      break;
-    case 'date_asc':
-      filtered.sort((a, b) => a.date.localeCompare(b.date));
-      break;
-  }
-  return filtered;
+  const yearOpts = Array.from({length:6},(_,i)=>`<option>${new Date().getFullYear()-i}</option>`).join('');
+  const today    = new Date().toISOString().slice(0,10);
+
+  return `
+    <div class="card">
+      <h4>✏️ Catat Hutang Puasa</h4>
+      ${isSuperAdmin ? `<label>Milik Siapa?</label><select id="f-owner">${memberOpts}</select>` : `<input type="hidden" id="f-owner" value="${me.uid}">`}
+      <label>Tanggal Hutang</label>
+      <input type="date" id="f-date" value="${today}" max="${today}">
+      <label>Tahun Ramadan</label>
+      <select id="f-year">${yearOpts}</select>
+      <label>Catatan (opsional)</label>
+      <textarea id="f-note" placeholder="Alasan berhalangan..."></textarea>
+      <button class="btn btn-p" style="margin-top:12px" onclick="addRecord()">💾 Simpan</button>
+    </div>
+    <div class="card" style="background:var(--amber-l);border-color:var(--amber)">
+      <div style="font-weight:700;font-size:12px;color:var(--amber);margin-bottom:6px">📥 Catat Banyak Sekaligus</div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:10px">Catat puluhan hutang tanpa satu-satu</div>
+      <button class="btn btn-amber" onclick="openBulk()">📋 Catat Massal</button>
+    </div>`;
 }
 
-function updateFilter(type, val) {
-  if (type === 'user')   filterUser   = val;
-  if (type === 'status') filterStatus = val;
-  renderContent();
-}
-
-function setSort(mode) {
-  sortMode = mode;
-  renderContent();
-}
-
-// ============================================================
-// THEME
-// ============================================================
-function pickTheme(theme) {
-  applyTheme(theme);
-  // re-render settings so selected state updates
-  renderContent();
-  showToast('🎨 Tema ' + THEMES[theme].label + ' diterapkan untuk ' + myName);
-}
-
-// ============================================================
-// CHAT FUNCTIONS
-// ============================================================
-function sendChat() {
-  const input = document.getElementById('chat-input');
-  if (!input) return;
-  const msg = input.value.trim();
-  if (!msg || !syncId) { if(!syncId) showToast('Set Sync ID dulu!'); return; }
-  db.ref('sync/' + syncId + '/chats').push({
-    sender: myName, text: msg, time: Date.now()
-  }).then(() => {
-    input.value = '';
-    const ep = document.getElementById('emoji-panel');
-    if (ep) ep.style.display = 'none';
-  }).catch(() => showToast('⚠️ Gagal kirim. Cek koneksi.'));
-}
-
-function initChatListener() {
-  if (!syncId) return;
-  const box = document.getElementById('chat-msgs');
-  if (!box) return;
-
-  db.ref('sync/' + syncId + '/chats').off();
-
-  let isFirstLoad = true;
-  let lastMsgCount = 0;
-
-  db.ref('sync/' + syncId + '/chats').limitToLast(100).on('value', (s) => {
-    const chatBox = document.getElementById('chat-msgs');
-    if (!chatBox) return; // tab mungkin sudah berganti
-
-    if (!s.exists()) {
-      chatBox.innerHTML = '<center style="color:var(--sub);padding:30px;font-size:12px">Belum ada obrolan. Mulai menyapa! 👋</center>';
-      isFirstLoad = false;
-      return;
-    }
-
-    let msgs = [];
-    s.forEach(child => msgs.push({ key: child.key, ...child.val() }));
-
-    // Deteksi pesan baru
-    if (!isFirstLoad && msgs.length > lastMsgCount) {
-      msgs.slice(lastMsgCount).forEach(m => {
-        if (m.sender !== myName) showPushNotif(m.sender, m.text);
-      });
-    }
-    lastMsgCount = msgs.length;
-
-    let h = '';
-    let prevDay = '';
-    msgs.forEach(m => {
-      const msgDate = new Date(m.time);
-      const dayKey  = msgDate.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-      if (dayKey !== prevDay) {
-        h += `<div class="chat-day-sep"><span>${dayKey}</span></div>`;
-        prevDay = dayKey;
-      }
-      const side    = m.sender === myName ? 'me' : 'other';
-      const timeStr = msgDate.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' });
-      h += `<div class="msg ${side}">
-        <div style="font-size:9px;font-weight:700;opacity:0.75;margin-bottom:2px">${m.sender}</div>
-        ${escapeHtml(m.text)}
-        <div style="font-size:8px;opacity:0.6;text-align:right;margin-top:3px">${timeStr}</div>
-      </div>`;
+// ---- RIWAYAT ----
+function renderRiwayat() {
+  // flatten all records
+  let flat = [];
+  Object.entries(records).forEach(([uid, recs]) => {
+    Object.entries(recs || {}).forEach(([rid, r]) => {
+      flat.push({ ...r, uid, rid, ownerName: members[uid]?.name || uid });
     });
-
-    chatBox.innerHTML = h;
-    chatBox.scrollTop = chatBox.scrollHeight;
-    if (currentTab === 'chat') markChatRead();
-    isFirstLoad = false;
   });
+
+  // filter
+  if (filterUser !== 'all')   flat = flat.filter(r => r.uid === filterUser);
+  if (filterStatus !== 'all') flat = flat.filter(r => r.status === filterStatus);
+
+  // sort
+  switch (sortMode) {
+    case 'hutang_terbaru': flat.sort((a,b)=>{ if(a.status!==b.status) return a.status==='hutang'?-1:1; return b.date.localeCompare(a.date); }); break;
+    case 'hutang_terlama': flat.sort((a,b)=>{ if(a.status!==b.status) return a.status==='hutang'?-1:1; return a.date.localeCompare(b.date); }); break;
+    case 'lunas_terbaru':  flat.sort((a,b)=>{ if(a.status!==b.status) return a.status==='done'?-1:1; return (b.finishDate||b.date).localeCompare(a.finishDate||a.date); }); break;
+    case 'date_desc':      flat.sort((a,b)=>b.date.localeCompare(a.date)); break;
+    case 'date_asc':       flat.sort((a,b)=>a.date.localeCompare(b.date)); break;
+  }
+
+  const memberOpts = Object.entries(members).map(([uid,m])=>`<option value="${uid}" ${filterUser===uid?'selected':''}>${m.name}</option>`).join('');
+  const sortBtns = [['hutang_terbaru','⚠️ Hutang↓'],['hutang_terlama','⚠️ Hutang↑'],['lunas_terbaru','✅ Lunas↓'],['date_desc','📅 Semua↓'],['date_asc','📅 Semua↑']]
+    .map(([k,l])=>`<button class="sort-btn${sortMode===k?' active':''}" onclick="setSort('${k}')">${l}</button>`).join('');
+
+  const canEditOthers = isSuperAdmin;
+
+  const items = flat.map(r => {
+    const canAct = r.uid === me.uid || canEditOthers;
+    const actBtns = canAct ? `
+      ${r.status==='hutang'?`<button class="act-btn" style="color:var(--p)" onclick="openFinish('${r.uid}','${r.rid}')">✅ Lunasi</button>`:''}
+      <button class="act-btn" style="color:var(--blue)" onclick="openEdit('${r.uid}','${r.rid}')">✏️ Edit</button>
+      <button class="act-btn" style="color:var(--red)" onclick="openDelete('${r.uid}','${r.rid}')">🗑</button>` : '';
+    return `<div class="rec ${r.status}">
+      <div class="rec-top">
+        <div>
+          <div class="rec-name">${r.ownerName}</div>
+          <div style="font-size:11px;color:var(--sub);margin-top:1px">${fmtDate(r.date)} · Ramadan ${r.year||'-'}</div>
+        </div>
+        <span class="rec-badge ${r.status==='done'?'badge-done':'badge-hutang'}">${r.status==='done'?'✅ Lunas':'⚠️ Hutang'}</span>
+      </div>
+      ${r.status==='done'?`<div style="font-size:11px;color:var(--p)">✅ Lunas: ${fmtDate(r.finishDate)}</div>`:''}
+      ${r.note?`<div class="rec-note">"${r.note}"</div>`:''}
+      ${canAct?`<div class="rec-actions">${actBtns}</div>`:''}
+    </div>`;
+  }).join('');
+
+  return `
+    <div class="card">
+      <div class="filter-row">
+        <select onchange="filterUser=this.value;renderContent()">
+          <option value="all" ${filterUser==='all'?'selected':''}>Semua</option>${memberOpts}
+        </select>
+        <select onchange="filterStatus=this.value;renderContent()">
+          <option value="all" ${filterStatus==='all'?'selected':''}>Semua Status</option>
+          <option value="hutang" ${filterStatus==='hutang'?'selected':''}>Hutang</option>
+          <option value="done" ${filterStatus==='done'?'selected':''}>Lunas</option>
+        </select>
+      </div>
+      <div class="sort-wrap">${sortBtns}</div>
+    </div>
+    ${items || '<div class="empty"><div class="empty-icon">📭</div><div>Tidak ada data</div></div>'}`;
 }
 
-function escapeHtml(text) {
-  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+// ---- CHAT ----
+function renderChat(c) {
+  if (!familyId) { c.innerHTML = '<div class="card">Chat tidak tersedia</div>'; return; }
+  markChatRead();
+  c.innerHTML = `
+    <div class="chat-wrap">
+      <div class="chat-msgs" id="chat-msgs">
+        <div style="text-align:center;padding:30px;color:var(--sub);font-size:12px">⏳ Memuat chat...</div>
+      </div>
+      <div class="emoji-panel" id="emoji-panel"></div>
+      <div class="chat-bar">
+        <button class="emoji-toggle" onclick="toggleEmoji()">😊</button>
+        <input class="chat-inp" id="chat-inp" placeholder="Pesan untuk keluarga..." onkeypress="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}">
+        <button class="send-btn" onclick="sendChat()">➤</button>
+      </div>
+    </div>`;
+  initEmojiPicker();
+  initChatListener();
+}
+
+function initEmojiPicker() {
+  // Use emoji-mart if available, else fallback grid
+  const panel = document.getElementById('emoji-panel');
+  if (!panel) return;
+  if (typeof EmojiMart !== 'undefined') {
+    const picker = new EmojiMart.Picker({
+      onEmojiSelect: (e) => { insertEmoji(e.native); },
+      theme: currentTheme === 'dark' ? 'dark' : 'light',
+      locale: 'id',
+      previewPosition: 'none',
+      skinTonePosition: 'none',
+    });
+    panel.appendChild(picker);
+  } else {
+    // fallback: common emojis grid
+    const emojis = ['😊','😂','🥰','😍','🤩','😅','😭','🥺','😎','🤔','😴','🥱','🤣','😇','😆','😋','🤭','🤫','😤','😡','🥳','🎉','👍','👎','🙏','❤️','💪','✨','🌟','⭐','🌙','☀️','🌈','🍰','🥘','🕌','🕋','📿','✅','❌'];
+    panel.style.cssText = 'display:none;padding:8px;';
+    panel.innerHTML = `<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px">${emojis.map(e=>`<span onclick="insertEmoji('${e}')" style="font-size:22px;text-align:center;cursor:pointer;padding:4px;border-radius:6px">${e}</span>`).join('')}</div>`;
+  }
 }
 
 function toggleEmoji() {
   const p = document.getElementById('emoji-panel');
-  if (p) p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  if (!p) return;
+  p.style.display = p.style.display === 'none' || !p.style.display ? 'block' : 'none';
 }
 
 function insertEmoji(e) {
-  const i = document.getElementById('chat-input');
-  if (i) { i.value += e; i.focus(); }
+  const inp = document.getElementById('chat-inp');
+  if (inp) { inp.value += e; inp.focus(); }
+  const panel = document.getElementById('emoji-panel');
+  if (panel && typeof EmojiMart !== 'undefined') panel.style.display = 'none';
+}
+
+function initChatListener() {
+  detachChat();
+  _chatRef = db.ref('families/' + familyId + '/chats').limitToLast(150);
+  _chatHandler = _chatRef.on('value', snap => {
+    const box = document.getElementById('chat-msgs');
+    if (!box) { detachChat(); return; }
+    if (!snap.exists()) {
+      box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--sub);font-size:12px">Belum ada pesan. Mulai menyapa! 👋</div>';
+      return;
+    }
+    let msgs = [];
+    snap.forEach(c => msgs.push({ id: c.key, ...c.val() }));
+    let html = '';
+    let prevDay = '';
+    msgs.forEach(m => {
+      const d   = new Date(m.time);
+      const day = d.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      if (day !== prevDay) {
+        html += `<div class="day-sep">${day}</div>`;
+        prevDay = day;
+      }
+      const isMe   = m.senderId === me.uid;
+      const timeStr = d.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', timeZone:'Asia/Jakarta' });
+      const sender  = members[m.senderId]?.name || m.senderName || '?';
+      // can edit/delete if own message and < 6 hours
+      const canManage = isMe && (Date.now() - m.time < 6 * 3600 * 1000);
+      const manageBtn = canManage ? `<div class="msg-actions">
+        <button class="msg-act-btn" onclick="editMsg('${m.id}','${escHtml(m.text)}')">✏️</button>
+        <button class="msg-act-btn" onclick="deleteMsg('${m.id}')">🗑</button>
+      </div>` : '';
+      html += `<div class="msg-wrap ${isMe?'me':'other'}">
+        <div class="msg-bubble">
+          ${!isMe?`<div class="msg-sender">${sender}</div>`:''}
+          <div>${escHtml(m.text)}</div>
+          ${m.edited?`<div class="msg-edited">diedit</div>`:''}
+          <div class="msg-time">${timeStr} WIB</div>
+          ${manageBtn}
+        </div>
+      </div>`;
+    });
+    box.innerHTML = html;
+    requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+    if (currentTab === 'chat') markChatRead();
+  });
+}
+
+function detachChat() {
+  if (_chatRef && _chatHandler) { _chatRef.off('value', _chatHandler); _chatRef = null; _chatHandler = null; }
+}
+
+function startBgChat() {
+  db.ref('families/' + familyId + '/chats').limitToLast(1).on('child_added', snap => {
+    if (currentTab === 'chat') return;
+    const m = snap.val();
+    if (m && m.senderId !== me.uid && m.time > lastSeenChat) {
+      unread++;
+      updateChatBadge();
+      if (Notification.permission === 'granted' && document.hidden)
+        new Notification('💬 ' + (members[m.senderId]?.name || '?'), { body: m.text });
+    }
+  });
+}
+
+async function sendChat() {
+  const inp = document.getElementById('chat-inp');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  const panel = document.getElementById('emoji-panel');
+  if (panel) panel.style.display = 'none';
+  await db.ref('families/' + familyId + '/chats').push({
+    senderId: me.uid,
+    senderName: myProfile.name,
+    text,
+    time: Date.now(),
+    edited: false
+  });
+  logActivity('mengirim pesan chat');
+}
+
+function editMsg(id, oldText) {
+  openModal(`<div class="modal-title">Edit Pesan</div>
+    <textarea id="edit-msg-txt" style="width:100%;margin-top:8px;height:80px;padding:10px;border:1.5px solid var(--bdr);border-radius:10px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text)">${oldText}</textarea>
+    <button class="btn btn-p" onclick="saveEditMsg('${id}')">Simpan</button>
+    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
+}
+
+async function saveEditMsg(id) {
+  const txt = document.getElementById('edit-msg-txt').value.trim();
+  if (!txt) { toast('Pesan tidak boleh kosong'); return; }
+  await db.ref('families/' + familyId + '/chats/' + id).update({ text: txt, edited: true });
+  closeModal();
+}
+
+function deleteMsg(id) {
+  openModal(`<div class="modal-title">Hapus pesan ini?</div>
+    <button class="btn btn-red" onclick="confirmDeleteMsg('${id}')">🗑 Hapus</button>
+    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
+}
+
+async function confirmDeleteMsg(id) {
+  await db.ref('families/' + familyId + '/chats/' + id).remove();
+  closeModal();
+  logActivity('menghapus pesan chat');
 }
 
 function markChatRead() {
-  unreadCount = 0;
-  lastSeenChatTime = Date.now();
-  localStorage.setItem('hp_last_seen_chat', lastSeenChatTime);
+  unread = 0; lastSeenChat = Date.now();
+  localStorage.setItem('lsc', lastSeenChat);
   updateChatBadge();
 }
 
 function updateChatBadge() {
   const b = document.getElementById('chat-badge');
   if (!b) return;
-  if (unreadCount > 0 && currentTab !== 'chat') {
-    b.style.display = 'flex';
-    b.textContent   = unreadCount > 99 ? '99+' : unreadCount;
-  } else {
-    b.style.display = 'none';
-  }
+  b.style.display = unread > 0 && currentTab !== 'chat' ? 'flex' : 'none';
+  b.textContent = unread > 99 ? '99+' : unread;
 }
 
-// ============================================================
-// NOTIFICATION
-// ============================================================
-function initNotif() {
-  if ('Notification' in window) {
-    Notification.requestPermission().then(p => { notifPermission = p === 'granted'; });
-  }
-  try {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (AC) notifSound = new AC();
-  } catch(e) {}
+// ---- LOG ----
+function renderLog() {
+  if (!activities.length) return '<div class="empty"><div class="empty-icon">📋</div><div>Belum ada aktivitas</div></div>';
+  const rows = activities.map(a => `
+    <div style="padding:9px 0;border-bottom:1px solid var(--bdr);font-size:12px">
+      <span style="font-weight:700;color:var(--p)">${a.user}</span> ${a.action}
+      <div style="font-size:10px;color:var(--sub);margin-top:2px">${new Date(a.time).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})}</div>
+    </div>`).join('');
+  return `<div class="card"><h4>🕒 Log Aktivitas</h4>${rows}</div>`;
 }
 
-function playNotifSound() {
-  try {
-    if (!notifSound) { const A=window.AudioContext||window.webkitAudioContext; if(A) notifSound=new A(); else return; }
-    const o=notifSound.createOscillator(), g=notifSound.createGain();
-    o.connect(g); g.connect(notifSound.destination);
-    o.frequency.setValueAtTime(880, notifSound.currentTime);
-    o.frequency.setValueAtTime(660, notifSound.currentTime+0.1);
-    g.gain.setValueAtTime(0.3, notifSound.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, notifSound.currentTime+0.4);
-    o.start(); o.stop(notifSound.currentTime+0.4);
-  } catch(e) {}
+// ---- SETTINGS ----
+function renderSettings() {
+  const themes = { green:{l:'Hijau 🌿',c:'linear-gradient(135deg,#085041,#1D9E75)'}, dark:{l:'Gelap 🌙',c:'linear-gradient(135deg,#0a1a14,#1D9E75)'}, pink:{l:'Pink 🌸',c:'linear-gradient(135deg,#9a3261,#e05f96)'}, ocean:{l:'Laut 🌊',c:'linear-gradient(135deg,#0e3d6e,#2d84d4)'} };
+  const themeGrid = Object.entries(themes).map(([k,t])=>`<div class="theme-dot ${currentTheme===k?'sel':''}" style="background:${t.c}" onclick="pickTheme('${k}')" title="${t.l}"><span style="font-size:22px">${['🌿','🌙','🌸','🌊'][Object.keys(themes).indexOf(k)]}</span></div>`).join('');
+
+  const memberList = Object.entries(members).map(([uid,m])=>`
+    <div class="member-item">
+      <div>
+        <div style="font-weight:700;font-size:13px">${m.name}</div>
+        <div style="font-size:11px;color:var(--sub)">${uid===me.uid?'Anda':''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="member-role ${m.role==='superadmin'?'role-super':'role-member'}">${m.role==='superadmin'?'👑 Kepala':'👤 Anggota'}</span>
+        ${isSuperAdmin && uid !== me.uid ? `<span onclick="kickMember('${uid}')" style="color:var(--red);cursor:pointer;font-size:12px">Keluarkan</span>`:'' }
+      </div>
+    </div>`).join('');
+
+  return `
+    <div class="card">
+      <h4>🎨 Tema Tampilan</h4>
+      <div class="theme-grid">${themeGrid}</div>
+    </div>
+    <div class="card">
+      <h4>👥 Anggota Keluarga</h4>
+      ${memberList}
+      ${isSuperAdmin ? `<button class="btn btn-p" style="margin-top:12px" onclick="openInvite()">🔗 Buat Kode Undangan</button>` : ''}
+    </div>
+    <div class="card">
+      <h4>👤 Akun Saya</h4>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:8px">Email: ${me.email}</div>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:12px">Nama: ${myProfile.name} · ${isSuperAdmin?'👑 Kepala Keluarga':'👤 Anggota'}</div>
+      <button class="btn btn-outline" onclick="editMyName()">✏️ Ubah Nama</button>
+      ${isSuperAdmin ? `
+      <button class="btn btn-red" style="margin-top:8px" onclick="confirmDeleteFamily()">🗑 Hapus Keluarga</button>
+      ` : `
+      <button class="btn btn-red" style="margin-top:8px" onclick="leaveFamily()">🚪 Keluar dari Keluarga</button>
+      `}
+      <button class="btn btn-outline" style="margin-top:8px" onclick="signOut()">🔒 Keluar Akun</button>
+    </div>`;
 }
 
-function showPushNotif(sender, text) {
-  if (notifPermission && document.hidden) {
-    try { new Notification('💬 '+sender, { body: text }); } catch(e) {}
-  }
-  playNotifSound();
-  unreadCount++;
-  updateChatBadge();
-}
-
-// ============================================================
+// ======================================================
 // RECORD ACTIONS
-// ============================================================
-function preAddRecord() {
-  const owner = document.getElementById('f-owner').value;
-  if (owner==='Papa'||owner==='Ibu') requestAdminAccess(addRecord); else addRecord();
+// ======================================================
+async function addRecord() {
+  const ownerUid = v('f-owner');
+  const date     = v('f-date');
+  const year     = v('f-year');
+  const note     = v('f-note');
+  if (!date) { toast('Pilih tanggal!'); return; }
+  // member only can add to self
+  if (!isSuperAdmin && ownerUid !== me.uid) { toast('❌ Tidak diizinkan!'); return; }
+  const rid = db.ref('families/' + familyId + '/records/' + ownerUid).push().key;
+  await db.ref('families/' + familyId + '/records/' + ownerUid + '/' + rid).set({
+    date, year, note, status: 'hutang', finishDate: null, createdAt: Date.now()
+  });
+  logActivity(`menambah hutang baru untuk ${members[ownerUid]?.name} (${date})`);
+  toast('✅ Hutang berhasil dicatat!');
+  setTab('riwayat');
 }
 
-function addRecord() {
-  const owner = document.getElementById('f-owner').value;
-  const date  = document.getElementById('f-date').value;
-  if (!date) { showToast('⚠️ Pilih tanggal!'); return; }
-  records.push({ id:Date.now(), owner, date, year:document.getElementById('f-year').value, note:document.getElementById('f-note').value, status:'hutang', finishDate:null });
-  save(`menambah hutang baru untuk ${owner} tanggal ${date}`);
-  setTab('log'); showToast('✅ Berhasil dicatat!');
+function openFinish(uid, rid) {
+  if (!isSuperAdmin && uid !== me.uid) { toast('❌ Tidak diizinkan!'); return; }
+  const today = new Date().toISOString().slice(0,10);
+  openModal(`<div class="modal-title">✅ Tandai Lunas</div>
+    <label style="display:block;margin-bottom:6px;font-size:11px;font-weight:700;color:var(--sub)">Tanggal Pelunasan</label>
+    <input type="date" id="finish-date" value="${today}" style="width:100%;padding:10px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text)">
+    <button class="btn btn-p" onclick="doFinish('${uid}','${rid}')">Konfirmasi</button>
+    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
 }
 
-function preOpenFinish(id) {
-  const r = records.find(x=>x.id===id);
-  if (r.owner==='Papa'||r.owner==='Ibu') requestAdminAccess(()=>openFinishModal(id)); else openFinishModal(id);
+async function doFinish(uid, rid) {
+  const fd = document.getElementById('finish-date').value;
+  await db.ref('families/' + familyId + '/records/' + uid + '/' + rid).update({ status: 'done', finishDate: fd });
+  logActivity(`melunasi hutang ${members[uid]?.name} (${fd})`);
+  closeModal();
+  toast('🎉 Alhamdulillah, lunas!');
 }
 
-function openFinishModal(id) {
-  openModal(`<h4>✅ Tandai Lunas</h4>
-    <label>Tanggal Pelunasan</label>
-    <input type="date" id="f-finish-date" value="${new Date().toISOString().split('T')[0]}">
-    <button class="btn-primary" onclick="markDone(${id})">Konfirmasi Lunas</button>
-    <button class="btn-secondary" onclick="closeModal()">Batal</button>`);
+function openEdit(uid, rid) {
+  if (!isSuperAdmin && uid !== me.uid) { toast('❌ Tidak diizinkan!'); return; }
+  const r = records[uid]?.[rid];
+  if (!r) return;
+  openModal(`<div class="modal-title">✏️ Edit Data</div>
+    <label style="display:block;margin:8px 0 4px;font-size:11px;font-weight:700;color:var(--sub)">Tanggal</label>
+    <input type="date" id="e-date" value="${r.date}" style="width:100%;padding:10px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text)">
+    <label style="display:block;margin:8px 0 4px;font-size:11px;font-weight:700;color:var(--sub)">Catatan</label>
+    <textarea id="e-note" style="width:100%;padding:10px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);height:70px;resize:none">${r.note||''}</textarea>
+    <button class="btn btn-p" onclick="doEdit('${uid}','${rid}')">Simpan</button>
+    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
 }
 
-function markDone(id) {
-  const idx = records.findIndex(r=>r.id===id);
-  const fDate = document.getElementById('f-finish-date').value;
-  records[idx].status = 'done';
-  records[idx].finishDate = fDate;
-  save(`melunasi hutang ${records[idx].owner} (Lunas tgl: ${fDate})`);
-  closeModal(); renderContent(); showToast('🎉 Alhamdulillah, lunas!');
+async function doEdit(uid, rid) {
+  const date = document.getElementById('e-date').value;
+  const note = document.getElementById('e-note').value;
+  await db.ref('families/' + familyId + '/records/' + uid + '/' + rid).update({ date, note });
+  logActivity(`mengubah data hutang ${members[uid]?.name}`);
+  closeModal();
+  toast('✅ Data diperbarui!');
 }
 
-function preEdit(id) {
-  const r = records.find(x=>x.id===id);
-  if (r.owner==='Papa'||r.owner==='Ibu') requestAdminAccess(()=>openEditModal(id)); else openEditModal(id);
+function openDelete(uid, rid) {
+  if (!isSuperAdmin && uid !== me.uid) { toast('❌ Tidak diizinkan!'); return; }
+  openModal(`<div class="modal-title">Hapus data ini?</div>
+    <p style="font-size:13px;color:var(--sub);text-align:center;margin-bottom:12px">Aksi ini tidak bisa dibatalkan.</p>
+    <button class="btn btn-red" onclick="doDelete('${uid}','${rid}')">🗑 Hapus</button>
+    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
 }
 
-function openEditModal(id) {
-  const r = records.find(x=>x.id===id);
-  let content = `<h4>Edit Data ${r.owner}</h4>`;
-  if (r.status==='hutang') {
-    content += `<label>Tanggal Hutang</label><input type="date" id="e-date" value="${r.date}"><label>Tahun Ramadan</label><input type="number" id="e-year" value="${r.year}">`;
-  } else {
-    content += `<label>Status</label><select id="e-status"><option value="done">Tetap Lunas</option><option value="hutang">Kembalikan ke Hutang</option></select><label>Tanggal Pelunasan</label><input type="date" id="e-finish" value="${r.finishDate||r.date}">`;
-  }
-  content += `<label>Catatan</label><textarea id="e-note">${r.note||''}</textarea>
-    <button class="btn-primary" onclick="saveEdit(${id})">💾 Simpan</button>
-    <button class="btn-secondary" onclick="closeModal()">Batal</button>`;
-  openModal(content);
+async function doDelete(uid, rid) {
+  await db.ref('families/' + familyId + '/records/' + uid + '/' + rid).remove();
+  logActivity(`menghapus data hutang ${members[uid]?.name}`);
+  closeModal();
+  toast('🗑 Data dihapus');
 }
 
-function saveEdit(id) {
-  const idx = records.findIndex(r=>r.id===id);
-  const old = {...records[idx]};
-  if (old.status==='hutang') {
-    records[idx].date = document.getElementById('e-date').value;
-    records[idx].year = document.getElementById('e-year').value;
-  } else {
-    records[idx].status     = document.getElementById('e-status').value;
-    records[idx].finishDate = document.getElementById('e-finish').value;
-    if (records[idx].status==='hutang') records[idx].finishDate = null;
-  }
-  records[idx].note = document.getElementById('e-note').value;
-  save(`mengubah data ${old.owner}`);
-  closeModal(); renderContent(); showToast('✅ Berhasil diupdate!');
-}
-
-function preDelete(id) {
-  const r = records.find(x=>x.id===id);
-  if (r.owner==='Papa'||r.owner==='Ibu') requestAdminAccess(()=>deleteRecord(id)); else deleteRecord(id);
-}
-
-function deleteRecord(id) {
-  const r = records.find(x=>x.id===id);
-  openModal(`<h4>Hapus Data?</h4>
-    <p style="font-size:13px;color:var(--sub);margin:10px 0">Hapus hutang milik <b>${r.owner}</b> tanggal <b>${formatDate(r.date)}</b>?</p>
-    <button class="btn-primary btn-red" onclick="confirmDelete(${id})">🗑 Ya, Hapus</button>
-    <button class="btn-secondary" onclick="closeModal()">Batal</button>`);
-}
-
-function confirmDelete(id) {
-  const r = records.find(x=>x.id===id);
-  records = records.filter(x=>x.id!==id);
-  save(`menghapus data hutang milik ${r.owner} (Tgl: ${r.date})`);
-  closeModal(); renderContent(); showToast('🗑 Data dihapus');
-}
-
-// ============================================================
+// ======================================================
 // BULK ADD
-// ============================================================
-function openBulkModal() {
-  const today = new Date().toISOString().split('T')[0];
-  const profOpts = profiles.map(p=>`<option value="${p}" ${myName===p?'selected':''}>${p}</option>`).join('');
-  openModal(`<h4>📋 Catat Massal Hutang</h4>
-    <p style="font-size:11px;color:var(--sub);margin:6px 0 10px">Cocok untuk mencatat banyak hutang sekaligus (misal: 60 hari)</p>
-    <label>Milik Siapa?</label><select id="bulk-owner">${profOpts}</select>
-    <label>Tahun Ramadan</label><input type="number" id="bulk-year" value="${new Date().getFullYear()}">
-    <label>Jumlah Hari Hutang</label><input type="number" id="bulk-count" placeholder="Contoh: 60" min="1" max="200">
-    <label>Tanggal Mulai Hutang</label><input type="date" id="bulk-start" value="${today}">
-    <label>Catatan (berlaku semua)</label><textarea id="bulk-note" placeholder="Hutang lama belum tercatat..."></textarea>
-    <div id="bulk-preview"></div>
-    <button class="btn-primary btn-blue" onclick="previewBulk()">Preview & Konfirmasi</button>
-    <button class="btn-secondary" onclick="closeModal()">Batal</button>`);
+// ======================================================
+function openBulk() {
+  const memberOpts = isSuperAdmin
+    ? Object.entries(members).map(([uid,m])=>`<option value="${uid}" ${uid===me.uid?'selected':''}>${m.name}</option>`).join('')
+    : `<option value="${me.uid}">${myProfile.name}</option>`;
+  const today = new Date().toISOString().slice(0,10);
+  openModal(`<div class="modal-title">📋 Catat Massal</div>
+    ${isSuperAdmin?`<label style="display:block;margin-bottom:4px;font-size:11px;font-weight:700;color:var(--sub)">Milik Siapa?</label><select id="b-owner" style="width:100%;padding:9px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);margin-bottom:8px">${memberOpts}</select>`:`<input type="hidden" id="b-owner" value="${me.uid}">`}
+    <label style="display:block;margin-bottom:4px;font-size:11px;font-weight:700;color:var(--sub)">Jumlah Hari Hutang</label>
+    <input type="number" id="b-count" placeholder="Contoh: 30" min="1" max="365" style="width:100%;padding:9px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);margin-bottom:8px">
+    <label style="display:block;margin-bottom:4px;font-size:11px;font-weight:700;color:var(--sub)">Tanggal Mulai</label>
+    <input type="date" id="b-start" value="${today}" style="width:100%;padding:9px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);margin-bottom:8px">
+    <label style="display:block;margin-bottom:4px;font-size:11px;font-weight:700;color:var(--sub)">Tahun Ramadan</label>
+    <input type="number" id="b-year" value="${new Date().getFullYear()}" style="width:100%;padding:9px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);margin-bottom:8px">
+    <label style="display:block;margin-bottom:4px;font-size:11px;font-weight:700;color:var(--sub)">Catatan</label>
+    <textarea id="b-note" placeholder="Catatan..." style="width:100%;padding:9px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);height:60px;resize:none;margin-bottom:8px"></textarea>
+    <button class="btn btn-amber" onclick="doBulk()">📥 Simpan Sekaligus</button>
+    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
 }
 
-function previewBulk() {
-  const owner = document.getElementById('bulk-owner').value;
-  const count = parseInt(document.getElementById('bulk-count').value);
-  const startDate = document.getElementById('bulk-start').value;
-  const year  = document.getElementById('bulk-year').value;
-  const note  = document.getElementById('bulk-note').value;
-  if (!count||count<1) { showToast('⚠️ Masukkan jumlah hari!'); return; }
-  if (!startDate)       { showToast('⚠️ Pilih tanggal mulai!'); return; }
-  const preview = document.getElementById('bulk-preview');
-  preview.innerHTML = `<div style="background:var(--amber-light);padding:10px;border-radius:8px;font-size:11px;margin-top:10px;color:var(--amber)">⚠️ Akan mencatat <b>${count} hutang</b> atas nama <b>${owner}</b> mulai <b>${formatDate(startDate)}</b>. Yakin?</div>`;
-  const btn = document.querySelector('#modal-content .btn-blue');
-  if (btn) {
-    btn.textContent = `✅ Simpan ${count} Data`;
-    btn.onclick = () => {
-      if (owner==='Papa'||owner==='Ibu') requestAdminAccess(()=>saveBulk(owner,count,startDate,year,note));
-      else saveBulk(owner,count,startDate,year,note);
+async function doBulk() {
+  const ownerUid = document.getElementById('b-owner').value;
+  const count    = parseInt(document.getElementById('b-count').value);
+  const start    = document.getElementById('b-start').value;
+  const year     = document.getElementById('b-year').value;
+  const note     = document.getElementById('b-note').value;
+  if (!count || count < 1) { toast('Isi jumlah hari!'); return; }
+  if (!start) { toast('Pilih tanggal mulai!'); return; }
+  if (!isSuperAdmin && ownerUid !== me.uid) { toast('❌ Tidak diizinkan!'); return; }
+  const baseDate = new Date(start + 'T00:00:00');
+  const updates  = {};
+  for (let i = 0; i < count; i++) {
+    const d = new Date(baseDate); d.setDate(d.getDate() + i);
+    const rid = db.ref('families/' + familyId + '/records/' + ownerUid).push().key;
+    updates[`families/${familyId}/records/${ownerUid}/${rid}`] = {
+      date: d.toISOString().slice(0,10), year, note, status: 'hutang', finishDate: null, createdAt: Date.now() + i
     };
   }
+  await db.ref().update(updates);
+  logActivity(`catat massal ${count} hutang untuk ${members[ownerUid]?.name}`);
+  closeModal();
+  toast(`✅ ${count} hutang berhasil dicatat!`);
+  setTab('riwayat');
 }
 
-function saveBulk(owner, count, startDate, year, note) {
-  const start = new Date(startDate+'T00:00:00');
-  for (let i=0; i<count; i++) {
-    const d = new Date(start);
-    d.setDate(d.getDate()+i);
-    const dateStr = d.toISOString().split('T')[0];
-    records.push({ id:Date.now()+i, owner, date:dateStr, year, note, status:'hutang', finishDate:null });
-  }
-  save(`menambah ${count} hutang massal untuk ${owner} mulai ${startDate}`);
-  closeModal(); setTab('log');
-  showToast(`✅ Berhasil catat ${count} hutang untuk ${owner}!`);
+// ======================================================
+// INVITE
+// ======================================================
+function openInvite() {
+  const code = Math.random().toString(36).slice(2,8).toUpperCase();
+  const expires = Date.now() + 48 * 3600 * 1000;
+  db.ref('invites/' + code).set({ familyId, createdBy: me.uid, createdAt: Date.now(), expiresAt: expires, used: false });
+  openModal(`<div class="modal-title">🔗 Kode Undangan</div>
+    <div style="font-size:12px;color:var(--sub);text-align:center;margin-bottom:8px">Bagikan kode ini ke anggota keluarga. Berlaku 48 jam.</div>
+    <div class="invite-code" id="inv-code">${code}</div>
+    <button class="btn btn-p" onclick="copyCode('${code}')">📋 Salin Kode</button>
+    <button class="btn btn-outline" onclick="closeModal()">Tutup</button>`);
 }
 
-// ============================================================
-// SYNC & PROFILES
-// ============================================================
-function preApplySync() {
-  const newName = document.getElementById('name-input').value;
-  if (newName==='Papa'||newName==='Ibu') requestAdminAccess(applySync); else applySync();
+function copyCode(code) {
+  navigator.clipboard.writeText(code).then(() => toast('✅ Kode disalin!')).catch(() => toast('Kode: ' + code));
 }
 
-function applySync() {
-  syncId  = document.getElementById('sync-input').value.trim();
-  const newName = document.getElementById('name-input').value;
-  myName  = newName;
-  localStorage.setItem('hp_sync_id',   syncId);
-  localStorage.setItem('hp_user_name', myName);
-  updateUserPill();
-  if (syncId) {
-    setupFirebaseListener();
-    startBackgroundChatListener();
-  }
-  showToast('✅ Pengaturan disimpan!');
-  renderContent();
+// ======================================================
+// MEMBERS MODAL
+// ======================================================
+function openMembersModal() {
+  const rows = Object.entries(members).map(([uid,m])=>`
+    <div class="member-item">
+      <div>
+        <div style="font-weight:700;font-size:13px">${m.name} ${uid===me.uid?'(Anda)':''}</div>
+        <div style="font-size:11px;color:var(--sub)">${uid===familyData?.superadmin?'Kepala Keluarga':'Anggota'}</div>
+      </div>
+      <span class="member-role ${m.role==='superadmin'?'role-super':'role-member'}">${m.role==='superadmin'?'👑':'👤'}</span>
+    </div>`).join('');
+
+  // progress per member
+  const progRows = Object.entries(members).map(([uid,m])=>{
+    const recs  = Object.values(records[uid]||{});
+    const total = recs.length, lunas = recs.filter(r=>r.status==='done').length;
+    const pct   = total > 0 ? Math.round(lunas/total*100) : 0;
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700">
+        <span>${m.name}</span><span style="color:var(--p)">${pct}%</span>
+      </div>
+      <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:10px;color:var(--sub);margin-top:2px">Total: ${total} · Lunas: ${lunas} · Sisa: ${total-lunas}</div>
+    </div>`;
+  }).join('');
+
+  openModal(`<div class="modal-title">👥 Anggota Keluarga</div>
+    ${rows}
+    <div style="margin-top:16px"><h4 style="font-size:13px;margin-bottom:10px">📊 Progress Semua Anggota</h4>${progRows}</div>
+    ${isSuperAdmin?`<button class="btn btn-p" style="margin-top:8px" onclick="closeModal();openInvite()">🔗 Undang Anggota</button>`:''}
+    <button class="btn btn-outline" onclick="closeModal()">Tutup</button>`);
 }
 
-function preRemoveProfile(n) {
-  if (n==='Papa'||n==='Ibu') requestAdminAccess(()=>removeProfile(n)); else removeProfile(n);
+// ======================================================
+// FAMILY MANAGEMENT
+// ======================================================
+async function kickMember(uid) {
+  openModal(`<div class="modal-title">Keluarkan Anggota?</div>
+    <p style="text-align:center;color:var(--sub);margin-bottom:12px;font-size:13px">Anggota akan dikeluarkan dari keluarga ini.</p>
+    <button class="btn btn-red" onclick="doKick('${uid}')">Keluarkan</button>
+    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
 }
 
-function removeProfile(n) {
-  if (profiles.length <= 1) { showToast('⚠️ Minimal 1 profil!'); return; }
-  openModal(`<h4>Hapus Profil?</h4>
-    <p style="font-size:13px;color:var(--sub);margin:10px 0">Hapus profil <b>${n}</b>? Data hutangnya tidak terhapus.</p>
-    <button class="btn-primary btn-red" onclick="doRemoveProfile('${n}')">Hapus</button>
-    <button class="btn-secondary" onclick="closeModal()">Batal</button>`);
+async function doKick(uid) {
+  await db.ref('families/' + familyId + '/members/' + uid).remove();
+  await db.ref('users/' + uid + '/familyId').remove();
+  logActivity(`mengeluarkan ${members[uid]?.name} dari keluarga`);
+  closeModal();
+  toast('✅ Anggota dikeluarkan');
 }
 
-function doRemoveProfile(n) {
-  profiles = profiles.filter(p=>p!==n);
-  save(`menghapus profil: ${n}`);
-  closeModal(); renderContent();
+async function leaveFamily() {
+  openModal(`<div class="modal-title">Keluar dari Keluarga?</div>
+    <p style="text-align:center;color:var(--sub);margin-bottom:12px;font-size:13px">Data hutang Anda tetap tersimpan.</p>
+    <button class="btn btn-red" onclick="doLeave()">🚪 Ya, Keluar</button>
+    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
 }
 
-function addProfile() {
-  const n = document.getElementById('new-prof-name').value.trim();
-  if (!n) { showToast('⚠️ Isi nama profil!'); return; }
-  if (profiles.includes(n)) { showToast('⚠️ Nama sudah ada!'); return; }
-  profiles.push(n);
-  save(`menambah profil baru: ${n}`);
-  renderContent(); showToast(`✅ Profil ${n} ditambahkan!`);
+async function doLeave() {
+  await db.ref('families/' + familyId + '/members/' + me.uid).remove();
+  await db.ref('users/' + me.uid + '/familyId').remove();
+  closeModal();
+  auth.currentUser.reload();
+  showScreen('setup');
 }
 
-// ============================================================
-// ADMIN
-// ============================================================
-function requestAdminAccess(callback) {
-  if (isAdminAuthenticated) { callback(); return; }
-  openModal(`<h4>🔒 Verifikasi Admin</h4>
-    <p style="font-size:12px;color:var(--sub);margin:8px 0">Aksi ini memerlukan PIN Admin (Papa/Ibu)</p>
-    <label>PIN Admin</label>
-    <input type="password" id="admin-pin-input" placeholder="Masukkan PIN..." maxlength="10">
-    <button class="btn-primary" onclick="verifyAdmin(${callback.toString().includes('addRecord') || callback.toString().includes('saveEdit') || callback.toString().includes('markDone') || callback.toString().includes('deleteRecord') || callback.toString().includes('saveBulk') ? 'true' : 'false'})">Verifikasi</button>
-    <button class="btn-secondary" onclick="closeModal()">Batal</button>`);
-  window._pendingAdminCallback = callback;
+function confirmDeleteFamily() {
+  openModal(`<div class="modal-title" style="color:var(--red)">⚠️ Hapus Keluarga?</div>
+    <p style="text-align:center;color:var(--sub);margin-bottom:12px;font-size:12px">Semua data, chat, dan catatan akan terhapus permanen. Ketik "<b>HAPUS</b>" untuk konfirmasi.</p>
+    <input id="del-confirm" class="inp" placeholder="Ketik HAPUS">
+    <button class="btn btn-red" onclick="doDeleteFamily()">Hapus Semua Data</button>
+    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
 }
 
-function verifyAdmin() {
-  const pin = document.getElementById('admin-pin-input').value;
-  if (pin === ADMIN_PIN) {
-    isAdminAuthenticated = true;
-    localStorage.setItem('hp_admin_auth','true');
-    closeModal();
-    showToast('✅ Akses Admin terverifikasi!');
-    if (window._pendingAdminCallback) { window._pendingAdminCallback(); window._pendingAdminCallback = null; }
-  } else {
-    showToast('❌ PIN Salah!');
-  }
+async function doDeleteFamily() {
+  if (document.getElementById('del-confirm').value !== 'HAPUS') { toast('Ketik HAPUS untuk konfirmasi!'); return; }
+  await db.ref('families/' + familyId).remove();
+  // clear all members' familyId
+  Object.keys(members).forEach(uid => db.ref('users/' + uid + '/familyId').remove());
+  closeModal();
+  toast('🗑 Keluarga dihapus');
+  setTimeout(() => signOut(), 1000);
 }
 
-function logoutAdmin() {
-  isAdminAuthenticated = false;
-  localStorage.removeItem('hp_admin_auth');
-  showToast('🔒 Sesi Admin dihapus!');
-  renderContent();
+async function editMyName() {
+  openModal(`<div class="modal-title">✏️ Ubah Nama</div>
+    <input id="new-name" class="inp" value="${myProfile.name}" placeholder="Nama baru...">
+    <button class="btn btn-p" onclick="saveMyName()">Simpan</button>
+    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
 }
 
-// ============================================================
+async function saveMyName() {
+  const name = document.getElementById('new-name').value.trim();
+  if (!name) { toast('Nama tidak boleh kosong!'); return; }
+  await db.ref('users/' + me.uid + '/name').set(name);
+  await db.ref('families/' + familyId + '/members/' + me.uid + '/name').set(name);
+  myProfile.name = name;
+  document.getElementById('hdr-user-btn').textContent = '👤 ' + name;
+  logActivity('mengubah nama profil ke: ' + name);
+  closeModal();
+  toast('✅ Nama diperbarui!');
+}
+
+// ======================================================
 // EXPORT
-// ============================================================
-function exportToExcel() {
-  const data = records.map(r=>({ "Nama":r.owner,"Tgl Hutang":r.date,"Status":r.status.toUpperCase(),"Tgl Lunas":r.finishDate||'-',"Catatan":r.note||'', "Tahun":r.year||'' }));
-  const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Data"); XLSX.writeFile(wb,"Hutang_Puasa_Family.xlsx");
+// ======================================================
+function exportExcel() {
+  const flat = [];
+  Object.entries(records).forEach(([uid, recs]) => {
+    Object.values(recs || {}).forEach(r => {
+      flat.push({ Nama: members[uid]?.name || uid, 'Tgl Hutang': r.date, 'Tahun Ramadan': r.year || '-', Status: r.status === 'done' ? 'LUNAS' : 'HUTANG', 'Tgl Lunas': r.finishDate || '-', Catatan: r.note || '' });
+    });
+  });
+  const ws = XLSX.utils.json_to_sheet(flat);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Data');
+  XLSX.writeFile(wb, `Hutang_Puasa_${familyData?.name||'Family'}.xlsx`);
+  toast('📊 File Excel diunduh!');
 }
 
-function exportLogs() {
-  const data=activities.map(a=>({ "Waktu":new Date(a.time).toLocaleString(),"User":a.user,"Aksi":a.action }));
-  const ws=XLSX.utils.json_to_sheet(data); const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Logs"); XLSX.writeFile(wb,"Activity_Logs.xlsx");
+// ======================================================
+// THEME & SORT
+// ======================================================
+function pickTheme(t) {
+  currentTheme = t;
+  applyTheme(t);
+  localStorage.setItem('theme_' + me.uid, t);
+  renderContent();
 }
 
-// ============================================================
+function applyTheme(t) {
+  document.body.setAttribute('data-theme', t);
+}
+
+function setSort(mode) { sortMode = mode; renderContent(); }
+
+// ======================================================
+// USER MENU
+// ======================================================
+function openUserMenu() {
+  openModal(`<div class="modal-title">👤 ${myProfile.name}</div>
+    <div style="font-size:12px;color:var(--sub);text-align:center;margin-bottom:12px">${me.email} · ${isSuperAdmin?'👑 Kepala Keluarga':'👤 Anggota'}</div>
+    <button class="btn btn-outline" onclick="closeModal();editMyName()">✏️ Ubah Nama</button>
+    ${isSuperAdmin?`<button class="btn btn-p" style="margin-top:8px" onclick="closeModal();openInvite()">🔗 Undang Anggota</button>`:''}
+    <button class="btn btn-outline" style="margin-top:8px" onclick="signOut()">🔒 Keluar Akun</button>
+    <button class="btn btn-outline" onclick="closeModal()">Tutup</button>`);
+}
+
+// ======================================================
+// ACTIVITY LOG
+// ======================================================
+function logActivity(action) {
+  db.ref('families/' + familyId + '/activities').push({
+    user: myProfile.name, action, time: Date.now()
+  });
+}
+
+// ======================================================
 // MODAL
-// ============================================================
+// ======================================================
 function openModal(html) {
-  const m = document.getElementById('modal');
   document.getElementById('modal-content').innerHTML = html;
-  m.style.display = 'flex';
+  document.getElementById('modal').classList.add('active');
 }
-
 function closeModal() {
-  document.getElementById('modal').style.display = 'none';
+  document.getElementById('modal').classList.remove('active');
 }
-
 function closeModalOutside(e) {
   if (e.target === document.getElementById('modal')) closeModal();
 }
 
-// ============================================================
+// ======================================================
 // UTILS
-// ============================================================
-function formatDate(d) {
-  return d ? new Date(d+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '-';
+// ======================================================
+function v(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function fmtDate(d) { return d ? new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) : '-'; }
+function escHtml(t) { return (t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+function toast(m, dur=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = m; t.style.display = 'block';
+  clearTimeout(window._toast);
+  window._toast = setTimeout(() => t.style.display = 'none', dur);
 }
 
-function showToast(m) {
-  const t=document.getElementById('toast');
-  t.innerText=m; t.style.display='block';
-  clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(()=>t.style.display='none', 3000);
-}
+// Notification permission
+if ('Notification' in window) Notification.requestPermission();
 </script>
 </body>
 </html>
