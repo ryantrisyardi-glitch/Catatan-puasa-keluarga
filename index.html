@@ -824,6 +824,9 @@ function initChatListener() {
     }
     let msgs = [];
     snap.forEach(c => msgs.push({ id: c.key, ...c.val() }));
+    // Urutkan berdasarkan waktu kirim — jangan andalkan urutan key snapshot saja,
+    // karena pesan hasil edit/impor/clock-skew bisa membuat urutan key tidak sinkron dengan waktu asli.
+    msgs.sort((a, b) => (a.time || 0) - (b.time || 0));
     let html = '';
     let prevDay = '';
     msgs.forEach(m => {
