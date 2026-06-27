@@ -218,6 +218,7 @@
       background: var(--bg);
       color: var(--text);
       height: 100vh;
+      height: calc(var(--app-height, 100vh));
       overflow: hidden;
       font-size: 14px
     }
@@ -226,6 +227,7 @@
     .screen {
       display: none;
       height: 100vh;
+      height: calc(var(--app-height, 100vh));
       flex-direction: column;
       max-width: 480px;
       margin: 0 auto;
@@ -821,7 +823,9 @@
       align-items: center;
       background: var(--card);
       border-top: 1px solid var(--bdr);
-      padding: 0 10px
+      padding: 0 10px;
+      z-index: 15;
+      pointer-events: auto
     }
 
     .chat-inp {
@@ -1320,6 +1324,23 @@
 
   <script>
     // ======================================================
+    // VIEWPORT HEIGHT FIX (mencegah chat-bar tersembunyi
+    // saat keyboard HP terbuka, karena 100vh tidak selalu
+    // mengikuti area yang benar-benar terlihat di mobile)
+    // ======================================================
+    function setAppHeight() {
+      const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+      document.documentElement.style.setProperty('--app-height', h + 'px');
+    }
+    setAppHeight();
+    window.addEventListener('resize', setAppHeight);
+    window.addEventListener('orientationchange', setAppHeight);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', setAppHeight);
+      window.visualViewport.addEventListener('scroll', setAppHeight);
+    }
+
+    // ======================================================
     // FIREBASE CONFIG
     // ======================================================
     const fbConfig = {
@@ -1762,6 +1783,17 @@
     </div>`;
       initEmojiPicker();
       initChatListener();
+
+      const inpEl = document.getElementById('chat-inp');
+      if (inpEl) {
+        inpEl.addEventListener('focus', () => {
+          setTimeout(() => {
+            setAppHeight();
+            const box = document.getElementById('chat-msgs');
+            if (box) box.scrollTop = box.scrollHeight;
+          }, 300);
+        });
+      }
     }
 
     function initEmojiPicker() {
