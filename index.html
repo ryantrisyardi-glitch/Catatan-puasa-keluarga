@@ -1275,43 +1275,11 @@
     // chat
     let _chatRef = null;
     let _chatHandler = null;
-    let _chatPoll = null;
     let unread = 0;
     let lastSeenChat = parseInt(localStorage.getItem('lsc') || '0');
 
     // listeners to detach
-    let _membersRef = null, _recordsRef = null, _activitiesRef = null, _bgChatRef = null;
-
-    // ======================================================
-    // CONNECTION RECOVERY
-    // Mobile browsers often suspend the JS/WebSocket connection when the screen
-    // is locked or the tab is backgrounded for a while. When that happens, a live
-    // Firebase 'value' listener can go stale and silently stop receiving updates
-    // until something forces a fresh re-sync. This watches for (a) Firebase's own
-    // connected/disconnected state and (b) the page becoming visible again, and in
-    // both cases re-attaches the listener for whatever the user is currently looking at.
-    // ======================================================
-    let _wasOffline = false;
-    function resyncCurrentView() {
-      if (!familyId) return;
-      if (currentTab === 'chat') initChatListener();
-      else renderContent();
-    }
-    function initConnectionWatcher() {
-      db.ref('.info/connected').on('value', snap => {
-        const connected = snap.val() === true;
-        if (!connected) {
-          _wasOffline = true;
-        } else if (_wasOffline) {
-          _wasOffline = false;
-          resyncCurrentView();
-        }
-      });
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') resyncCurrentView();
-      });
-    }
-    initConnectionWatcher();
+    let _membersRef = null, _recordsRef = null, _activitiesRef = null;
 
     // ======================================================
     // INIT — AUTH STATE
@@ -1482,7 +1450,6 @@
     // LOAD FAMILY & LISTENERS
     // ======================================================
     async function loadFamily() {
-      detachDataListeners(); // prevent duplicate/stacked listeners if this runs more than once (e.g. auth token refresh) — but never touch the live chat listener here
       const fsnap = await db.ref('families/' + familyId).get();
       if (!fsnap.exists()) return;
       familyData = fsnap.val();
@@ -1523,22 +1490,10 @@
       renderContent();
     }
 
-    function detachDataListeners() {
-      // Safe to call every time loadFamily() runs (e.g. on Firebase auth token refresh,
-      // which fires automatically ~every hour). Deliberately does NOT touch the chat
-      // listener — doing so previously caused live chat to silently stop updating
-      // mid-session whenever the auth token refreshed while the user had the Chat tab open.
+    function detachListeners() {
       if (_recordsRef) _recordsRef.off();
       if (_membersRef) _membersRef.off();
       if (_activitiesRef) _activitiesRef.off();
-      if (_bgChatRef) {
-        _bgChatRef.off();
-        _bgChatRef = null;
-      }
-    }
-
-    function detachListeners() {
-      detachDataListeners();
       detachChat();
     }
 
@@ -1747,7 +1702,6 @@
     }
 
     function initEmojiPicker() {
-      // Use emoji-mart if available, else fallback grid
       const panel = document.getElementById('emoji-panel');
       if (!panel) return;
       if (typeof EmojiMart !== 'undefined') {
@@ -1760,7 +1714,6 @@
         });
         panel.appendChild(picker);
       } else {
-        // fallback: common emojis grid
         const emojis = ['😊', '😂', '🥰', '😍', '🤩', '😅', '😭', '🥺', '😎', '🤔', '😴', '🥱', '🤣', '😇', '😆', '😋', '🤭', '🤫', '😤', '😡', '🥳', '🎉', '👍', '👎', '🙏', '❤️', '💪', '✨', '🌟', '⭐', '🌙', '☀️', '🌈', '🍰', '🥘', '🕌', '🕋', '📿', '✅', '❌'];
         panel.style.cssText = 'display:none;padding:8px;';
         panel.innerHTML = `<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px">${emojis.map(e => `<span onclick="insertEmoji('${e}')" style="font-size:22px;text-align:center;cursor:pointer;padding:4px;border-radius:6px">${e}</span>`).join('')}</div>`;
@@ -1780,34 +1733,35 @@
       if (panel && typeof EmojiMart !== 'undefined') panel.style.display = 'none';
     }
 
-    function renderChatSnapshot(snap) {
-      const box = document.getElementById('chat-msgs');
-      if (!box) return;
-      if (!snap.exists()) {
-        box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--sub);font-size:12px">Belum ada pesan. Mulai menyapa! 👋</div>';
-        return;
-      }
-      let msgs = [];
-      snap.forEach(c => msgs.push({ id: c.key, ...c.val() }));
-      // Urutkan berdasarkan waktu kirim — jangan andalkan urutan key snapshot saja,
-      // karena pesan hasil edit/impor/clock-skew bisa membuat urutan key tidak sinkron dengan waktu asli.
-      msgs.sort((a, b) => (a.time || 0) - (b.time || 0));
-      let html = '';
-      let prevDay = '';
-      msgs.forEach(m => {
-        try {
-          const d = new Date(m.time || 0);
-          const validDate = !isNaN(d.getTime());
-          const day = validDate ? d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'Lainnya';
+    function initChatListener() {
+      detachChat();
+      _chatRef = db.ref('families/' + familyId + '/chats').limitToLast(150);
+      _chatHandler = _chatRef.on('value', snap => {
+        const box = document.getElementById('chat-msgs');
+        if (!box) { detachChat(); return; }
+        if (!snap.exists()) {
+          box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--sub);font-size:12px">Belum ada pesan. Mulai menyapa! 👋</div>';
+          return;
+        }
+
+        let msgs = [];
+        snap.forEach(c => { msgs.push({ id: c.key, ...c.val() }); });
+        // Pastikan diurutkan berdasarkan waktu agar pesannya terstruktur dengan benar
+        msgs.sort((a, b) => a.time - b.time);
+
+        let html = '';
+        let prevDay = '';
+        msgs.forEach(m => {
+          const d = new Date(m.time);
+          const day = d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
           if (day !== prevDay) {
             html += `<div class="day-sep">${day}</div>`;
             prevDay = day;
           }
           const isMe = m.senderId === me.uid;
-          const timeStr = validDate ? d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }) : '';
+          const timeStr = d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
           const sender = members[m.senderId]?.name || m.senderName || '?';
-          // can edit/delete if own message and < 6 hours
-          const canManage = isMe && (Date.now() - (m.time || 0) < 6 * 3600 * 1000);
+          const canManage = isMe && (Date.now() - m.time < 6 * 3600 * 1000);
           const manageBtn = canManage ? `<div class="msg-actions">
         <button class="msg-act-btn" onclick="editMsg('${m.id}','${escHtml(m.text)}')">✏️</button>
         <button class="msg-act-btn" onclick="deleteMsg('${m.id}')">🗑</button>
@@ -1821,52 +1775,19 @@
           ${manageBtn}
         </div>
       </div>`;
-        } catch (errInner) {
-          console.error('Gagal merender 1 pesan chat (dilewati):', m, errInner);
-        }
+        });
+        box.innerHTML = html;
+        requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
+        if (currentTab === 'chat') markChatRead();
       });
-      box.innerHTML = html || '<div style="text-align:center;padding:40px;color:var(--sub);font-size:12px">Belum ada pesan. Mulai menyapa! 👋</div>';
-      requestAnimationFrame(() => { box.scrollTop = box.scrollHeight; });
-      if (currentTab === 'chat') markChatRead();
-    }
-
-    function initChatListener() {
-      detachChat();
-      if (_bgChatRef) {
-        _bgChatRef.off();
-        _bgChatRef = null;
-      }
-      _chatRef = db.ref('families/' + familyId + '/chats').limitToLast(150);
-      _chatHandler = _chatRef.on('value', renderChatSnapshot, err => {
-        console.error('Chat listener error:', err);
-        const box = document.getElementById('chat-msgs');
-        if (box) box.innerHTML = `<div style="text-align:center;padding:30px;color:var(--red);font-size:12px">⚠️ Gagal memuat chat: ${err.message || err}<br>Coba keluar-masuk tab Chat lagi.</div>`;
-      });
-      // Polling cadangan: kalau koneksi live (WebSocket) sempat "tertidur" saat HP dikunci/di-background
-      // lama lalu tidak otomatis menyala kembali, ambil ulang data tiap 15 detik secara manual selagi
-      // tab Chat masih dibuka — supaya pesan baru tetap muncul walau listener live-nya macet.
-      _chatPoll = setInterval(() => {
-        if (currentTab === 'chat' && familyId) {
-          db.ref('families/' + familyId + '/chats').limitToLast(150).get().then(renderChatSnapshot).catch(() => { });
-        }
-      }, 15000);
     }
 
     function detachChat() {
       if (_chatRef && _chatHandler) { _chatRef.off('value', _chatHandler); _chatRef = null; _chatHandler = null; }
-      if (_chatPoll) { clearInterval(_chatPoll); _chatPoll = null; }
-      startBgChat();
     }
 
     function startBgChat() {
-      if (!familyId || !auth.currentUser) return;
-      if (currentTab === 'chat') return;
-      if (_bgChatRef) {
-        _bgChatRef.off();
-        _bgChatRef = null;
-      }
-      _bgChatRef = db.ref('families/' + familyId + '/chats').limitToLast(1);
-      _bgChatRef.on('child_added', snap => {
+      db.ref('families/' + familyId + '/chats').limitToLast(1).on('child_added', snap => {
         if (currentTab === 'chat') return;
         const m = snap.val();
         if (m && m.senderId !== me.uid && m.time > lastSeenChat) {
