@@ -13,8 +13,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-  <!-- emoji-mart CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/emoji-mart@5.5.2/dist/browser.js"></script>
   <!-- xlsx -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -120,6 +118,99 @@
       --me-bg: #1a6bbd;
       --other-bg: #eaf1fb;
       --other-text: #0d1117;
+    }
+
+    [data-theme="brutalist"] {
+      --p: #1A1A1A;
+      --pm: #2B2B2B;
+      --pd: #000000;
+      --pl: #E5E2D8;
+      --h1: #000000;
+      --h2: #2B2B2B;
+      --h3: #1A1A1A;
+      --bg: #ECE9E1;
+      --card: #FFFDF7;
+      --text: #111111;
+      --sub: #54504A;
+      --bdr: #111111;
+      --inp: #FFFFFF;
+      --red: #B3261E;
+      --blue: #2451B3;
+      --amber: #A9790A;
+      --amber-l: #EFE6C8;
+      --me-bg: #111111;
+      --other-bg: #FFFDF7;
+      --other-text: #111111;
+    }
+
+    [data-theme="neobrutalist"] {
+      --p: #D7263D;
+      --pm: #E8473F;
+      --pd: #A11D2E;
+      --pl: #FBE3DD;
+      --h1: #A11D2E;
+      --h2: #D7263D;
+      --h3: #E8473F;
+      --bg: #FFF8E7;
+      --card: #FFFFFF;
+      --text: #111111;
+      --sub: #6B5D4F;
+      --bdr: #111111;
+      --inp: #FFFDF5;
+      --red: #D7263D;
+      --blue: #1E4FA3;
+      --amber: #C8932B;
+      --amber-l: #FBF0D2;
+      --me-bg: #111111;
+      --other-bg: #FFFFFF;
+      --other-text: #111111;
+    }
+
+    /* Hard-edged look for Brutalist / Neo-Brutalist: flat corners, thick borders, offset hard shadows, no soft blur */
+    [data-theme="brutalist"] *,
+    [data-theme="neobrutalist"] * {
+      border-radius: 0 !important;
+    }
+
+    [data-theme="brutalist"] .card,
+    [data-theme="brutalist"] .dash-card,
+    [data-theme="brutalist"] .rec,
+    [data-theme="brutalist"] .btn,
+    [data-theme="brutalist"] .modal-box,
+    [data-theme="brutalist"] .auth-card,
+    [data-theme="brutalist"] input,
+    [data-theme="brutalist"] textarea,
+    [data-theme="brutalist"] select,
+    [data-theme="neobrutalist"] .card,
+    [data-theme="neobrutalist"] .dash-card,
+    [data-theme="neobrutalist"] .rec,
+    [data-theme="neobrutalist"] .btn,
+    [data-theme="neobrutalist"] .modal-box,
+    [data-theme="neobrutalist"] .auth-card,
+    [data-theme="neobrutalist"] input,
+    [data-theme="neobrutalist"] textarea,
+    [data-theme="neobrutalist"] select {
+      border: 2px solid var(--text) !important;
+      box-shadow: 4px 4px 0 var(--text) !important;
+    }
+
+    [data-theme="brutalist"] .dash-card,
+    [data-theme="neobrutalist"] .dash-card {
+      border: 2px solid rgba(255, 255, 255, .6) !important;
+      box-shadow: 3px 3px 0 rgba(0, 0, 0, .35) !important;
+    }
+
+    [data-theme="brutalist"] body,
+    [data-theme="neobrutalist"] body {
+      font-weight: 600;
+    }
+
+    [data-theme="brutalist"] .msg-wrap.me .msg-bubble,
+    [data-theme="brutalist"] .msg-wrap.other .msg-bubble,
+    [data-theme="neobrutalist"] .msg-wrap.me .msg-bubble,
+    [data-theme="neobrutalist"] .msg-wrap.other .msg-bubble {
+      border: 2px solid var(--text) !important;
+      box-shadow: 3px 3px 0 var(--text) !important;
     }
 
     body {
@@ -342,32 +433,22 @@
       margin-bottom: 10px
     }
 
-    .hdr-stats {
+    .hdr-dash {
       display: flex;
-      gap: 8px
+      flex-direction: column;
+      max-height: 158px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-right: 2px
     }
 
-    .hdr-stat {
-      flex: 1;
-      background: rgba(255, 255, 255, .13);
-      border: 1px solid rgba(255, 255, 255, .18);
-      border-radius: 11px;
-      padding: 8px;
-      text-align: center
+    .hdr-dash::-webkit-scrollbar {
+      width: 3px
     }
 
-    .hdr-stat-n {
-      font-size: 20px;
-      font-weight: 800;
-      color: #fff;
-      line-height: 1
-    }
-
-    .hdr-stat-l {
-      font-size: 9px;
-      color: rgba(255, 255, 255, .65);
-      margin-top: 2px;
-      font-weight: 600
+    .hdr-dash::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, .35);
+      border-radius: 3px
     }
 
     /* TABS */
@@ -961,7 +1042,7 @@
     /* THEME */
     .theme-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
       margin-top: 10px
     }
@@ -1090,35 +1171,37 @@
       transition: width .5s
     }
 
-    /* DASHBOARD CARDS (per-member overview, like screenshot) */
+    /* DASHBOARD CARDS (per-member overview, shown in header) */
     .dash-card {
-      background: linear-gradient(135deg, var(--h1), var(--h2) 60%, var(--h3));
-      border-radius: 14px;
-      padding: 14px 16px;
-      margin-bottom: 10px
+      background: rgba(255, 255, 255, .14);
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 12px;
+      padding: 9px 12px;
+      margin-bottom: 7px;
+      flex-shrink: 0
     }
 
     .dash-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px
+      margin-bottom: 6px
     }
 
     .dash-name {
       color: #fff;
       font-weight: 800;
-      font-size: 14px
+      font-size: 13px
     }
 
     .dash-pct {
       color: #fff;
       font-weight: 800;
-      font-size: 13px
+      font-size: 12px
     }
 
     .dash-bar-bg {
-      height: 6px;
+      height: 5px;
       background: rgba(255, 255, 255, .25);
       border-radius: 6px;
       overflow: hidden
@@ -1133,8 +1216,8 @@
 
     .dash-stats {
       color: rgba(255, 255, 255, .82);
-      font-size: 11px;
-      margin-top: 8px;
+      font-size: 10px;
+      margin-top: 6px;
       font-weight: 600
     }
   </style>
@@ -1207,14 +1290,13 @@
         <button class="hdr-user" id="hdr-user-btn" onclick="openUserMenu()">👤 ...</button>
       </div>
       <div class="hdr-title" id="hdr-family-name">🕌 Hutang Puasa Family</div>
-      <div class="hdr-stats" id="hdr-stats"></div>
+      <div class="hdr-dash" id="hdr-dash"></div>
     </div>
     <div class="tabs">
       <div class="tab active" id="tab-catat" onclick="setTab('catat')">✏️ Catat</div>
       <div class="tab" id="tab-riwayat" onclick="setTab('riwayat')">📋 Riwayat</div>
       <div class="tab" id="tab-chat" onclick="setTab('chat')">💬 Chat<span class="badge" id="chat-badge"
           style="display:none">0</span></div>
-      <div class="tab" id="tab-log" onclick="setTab('log')">🕒 Log</div>
       <div class="tab" id="tab-settings" onclick="setTab('settings')">⚙️</div>
     </div>
     <div class="content" id="main-content"></div>
@@ -1263,7 +1345,6 @@
     let isSuperAdmin = false;
 
     let records = {};
-    let activities = [];
     let members = {};
 
     let currentTab = 'catat';
@@ -1279,7 +1360,7 @@
     let lastSeenChat = parseInt(localStorage.getItem('lsc') || '0');
 
     // listeners to detach
-    let _membersRef = null, _recordsRef = null, _activitiesRef = null;
+    let _membersRef = null, _recordsRef = null;
 
     // ======================================================
     // INIT — AUTH STATE
@@ -1459,8 +1540,6 @@
       // header
       document.getElementById('hdr-family-name').textContent = '🕌 ' + familyData.name;
       document.getElementById('hdr-user-btn').textContent = '👤 ' + myProfile.name;
-      const logTab = document.getElementById('tab-log');
-      if (logTab) logTab.style.display = isSuperAdmin ? '' : 'none';
 
       // realtime records — listen to each member
       _recordsRef = db.ref('families/' + familyId + '/records');
@@ -1477,13 +1556,6 @@
         updateHeader();
       });
 
-      // activities
-      _activitiesRef = db.ref('families/' + familyId + '/activities');
-      _activitiesRef.limitToLast(200).on('value', snap => {
-        activities = [];
-        snap.forEach(c => activities.unshift(c.val()));
-      });
-
       // background chat listener
       startBgChat();
 
@@ -1493,7 +1565,6 @@
     function detachListeners() {
       if (_recordsRef) _recordsRef.off();
       if (_membersRef) _membersRef.off();
-      if (_activitiesRef) _activitiesRef.off();
       detachChat();
     }
 
@@ -1501,26 +1572,15 @@
     // HEADER STATS
     // ======================================================
     function updateHeader() {
-      const el = document.getElementById('hdr-stats');
+      const el = document.getElementById('hdr-dash');
       if (!el) return;
-      // my own stats
-      const myRecs = Object.values(records[me.uid] || {});
-      const total = myRecs.length;
-      const lunas = myRecs.filter(r => r.status === 'done').length;
-      const sisa = total - lunas;
-      const pct = total > 0 ? Math.round(lunas / total * 100) : 0;
-      el.innerHTML = `
-    <div class="hdr-stat"><div class="hdr-stat-n">${total}</div><div class="hdr-stat-l">Total</div></div>
-    <div class="hdr-stat"><div class="hdr-stat-n">${sisa}</div><div class="hdr-stat-l">Sisa</div></div>
-    <div class="hdr-stat"><div class="hdr-stat-n">${lunas}</div><div class="hdr-stat-l">Lunas</div></div>
-    <div class="hdr-stat"><div class="hdr-stat-n">${pct}%</div><div class="hdr-stat-l">Progress</div></div>`;
+      el.innerHTML = renderDashboard();
     }
 
     // ======================================================
     // TABS
     // ======================================================
     function setTab(tab) {
-      if (tab === 'log' && !isSuperAdmin) { toast('❌ Log hanya untuk Kepala Keluarga'); return; }
       if (currentTab === 'chat' && tab !== 'chat') detachChat();
       currentTab = tab;
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -1554,13 +1614,17 @@
       if (currentTab === 'catat') c.innerHTML = renderCatat();
       else if (currentTab === 'riwayat') c.innerHTML = renderRiwayat();
       else if (currentTab === 'chat') { renderChat(c); return; }
-      else if (currentTab === 'log') c.innerHTML = renderLog();
       else if (currentTab === 'settings') c.innerHTML = renderSettings();
     }
 
     // ---- DASHBOARD (per-member overview, like screenshot) ----
     function renderDashboard() {
-      const cards = Object.entries(members).map(([uid, m]) => {
+      const entries = Object.entries(members).sort(([uidA], [uidB]) => {
+        if (uidA === me.uid) return -1;
+        if (uidB === me.uid) return 1;
+        return 0;
+      });
+      const cards = entries.map(([uid, m]) => {
         const recs = Object.values(records[uid] || {});
         const total = recs.length;
         const lunas = recs.filter(r => r.status === 'done').length;
@@ -1586,7 +1650,6 @@
       const today = new Date().toISOString().slice(0, 10);
 
       return `
-    ${renderDashboard()}
     <div class="card">
       <h4>✏️ Catat Hutang Puasa</h4>
       ${isSuperAdmin ? `<label>Milik Siapa?</label><select id="f-owner">${memberOpts}</select>` : `<input type="hidden" id="f-owner" value="${me.uid}">`}
@@ -1704,20 +1767,8 @@
     function initEmojiPicker() {
       const panel = document.getElementById('emoji-panel');
       if (!panel) return;
-      if (typeof EmojiMart !== 'undefined') {
-        const picker = new EmojiMart.Picker({
-          onEmojiSelect: (e) => { insertEmoji(e.native); },
-          theme: currentTheme === 'dark' ? 'dark' : 'light',
-          locale: 'id',
-          previewPosition: 'none',
-          skinTonePosition: 'none',
-        });
-        panel.appendChild(picker);
-      } else {
-        const emojis = ['😊', '😂', '🥰', '😍', '🤩', '😅', '😭', '🥺', '😎', '🤔', '😴', '🥱', '🤣', '😇', '😆', '😋', '🤭', '🤫', '😤', '😡', '🥳', '🎉', '👍', '👎', '🙏', '❤️', '💪', '✨', '🌟', '⭐', '🌙', '☀️', '🌈', '🍰', '🥘', '🕌', '🕋', '📿', '✅', '❌'];
-        panel.style.cssText = 'display:none;padding:8px;';
-        panel.innerHTML = `<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px">${emojis.map(e => `<span onclick="insertEmoji('${e}')" style="font-size:22px;text-align:center;cursor:pointer;padding:4px;border-radius:6px">${e}</span>`).join('')}</div>`;
-      }
+      const emojis = ['😊', '😂', '🥰', '😍', '🤩', '😅', '😭', '🥺', '😎', '🤔', '😴', '🥱', '🤣', '😇', '😆', '😋', '🤭', '🤫', '😤', '😡', '🥳', '🎉', '👍', '👎', '🙏', '❤️', '💪', '✨', '🌟', '⭐', '🌙', '☀️', '🌈', '🍰', '🥘', '🕌', '🕋', '📿', '✅', '❌'];
+      panel.innerHTML = `<div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:8px">${emojis.map(e => `<span onclick="insertEmoji('${e}')" style="font-size:22px;text-align:center;cursor:pointer;padding:4px;border-radius:6px">${e}</span>`).join('')}</div>`;
     }
 
     function toggleEmoji() {
@@ -1730,7 +1781,7 @@
       const inp = document.getElementById('chat-inp');
       if (inp) { inp.value += e; inp.focus(); }
       const panel = document.getElementById('emoji-panel');
-      if (panel && typeof EmojiMart !== 'undefined') panel.style.display = 'none';
+      if (panel) panel.style.display = 'none';
     }
 
     function initChatListener() {
@@ -1814,7 +1865,6 @@
         time: Date.now(),
         edited: false
       });
-      logActivity('mengirim pesan chat');
     }
 
     function editMsg(id, oldText) {
@@ -1840,7 +1890,6 @@
     async function confirmDeleteMsg(id) {
       await db.ref('families/' + familyId + '/chats/' + id).remove();
       closeModal();
-      logActivity('menghapus pesan chat');
     }
 
     function markChatRead() {
@@ -1857,39 +1906,11 @@
     }
 
     // ---- LOG (superadmin only) ----
-    function renderLog() {
-      const dlBtn = isSuperAdmin ? `<button class="btn btn-outline" style="margin-bottom:10px" onclick="confirmExportLog()">📥 Download Log (Excel)</button>` : '';
-      if (!activities.length) return `<div class="card">${dlBtn}</div><div class="empty"><div class="empty-icon">📋</div><div>Belum ada aktivitas</div></div>`;
-      const rows = activities.map(a => `
-    <div style="padding:9px 0;border-bottom:1px solid var(--bdr);font-size:12px">
-      <span style="font-weight:700;color:var(--p)">${a.user}</span> ${a.action}
-      <div style="font-size:10px;color:var(--sub);margin-top:2px">${new Date(a.time).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}</div>
-    </div>`).join('');
-      return `<div class="card">${dlBtn}<h4>🕒 Log Aktivitas</h4>${rows}</div>`;
-    }
-
-    function confirmExportLog() {
-      if (!isSuperAdmin) { toast('❌ Hanya Kepala Keluarga yang bisa download log'); return; }
-      openModal(`<div class="modal-title">📥 Download Log Aktivitas?</div>
-    <p style="font-size:13px;color:var(--sub);text-align:center;margin-bottom:12px">File Excel berisi ${activities.length} catatan aktivitas akan diunduh ke perangkat Anda.</p>
-    <button class="btn btn-p" onclick="doExportLog()">📥 Ya, Download</button>
-    <button class="btn btn-outline" onclick="closeModal()">Batal</button>`);
-    }
-
-    function doExportLog() {
-      closeModal();
-      const flat = activities.map(a => ({ Pengguna: a.user, Aktivitas: a.action, Waktu: new Date(a.time).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) }));
-      const ws = XLSX.utils.json_to_sheet(flat);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Log');
-      XLSX.writeFile(wb, `Log_Aktivitas_${familyData?.name || 'Family'}.xlsx`);
-      toast('📥 Log diunduh!');
-    }
-
     // ---- SETTINGS ----
     function renderSettings() {
-      const themes = { green: { l: 'Hijau 🌿', c: 'linear-gradient(135deg,#085041,#1D9E75)' }, dark: { l: 'Gelap 🌙', c: 'linear-gradient(135deg,#0a1a14,#1D9E75)' }, pink: { l: 'Pink 🌸', c: 'linear-gradient(135deg,#9a3261,#e05f96)' }, ocean: { l: 'Laut 🌊', c: 'linear-gradient(135deg,#0e3d6e,#2d84d4)' } };
-      const themeGrid = Object.entries(themes).map(([k, t]) => `<div class="theme-dot ${currentTheme === k ? 'sel' : ''}" style="background:${t.c}" onclick="pickTheme('${k}')" title="${t.l}"><span style="font-size:22px">${['🌿', '🌙', '🌸', '🌊'][Object.keys(themes).indexOf(k)]}</span></div>`).join('');
+      const themes = { green: { l: 'Hijau 🌿', c: 'linear-gradient(135deg,#085041,#1D9E75)' }, dark: { l: 'Gelap 🌙', c: 'linear-gradient(135deg,#0a1a14,#1D9E75)' }, pink: { l: 'Pink 🌸', c: 'linear-gradient(135deg,#9a3261,#e05f96)' }, ocean: { l: 'Laut 🌊', c: 'linear-gradient(135deg,#0e3d6e,#2d84d4)' }, brutalist: { l: 'Brutalist 🧱', c: 'linear-gradient(135deg,#000000,#2b2b2b)' }, neobrutalist: { l: 'Neo-Brutalist ⚡', c: 'linear-gradient(135deg,#111111,#D7263D)' } };
+      const themeIcons = { green: '🌿', dark: '🌙', pink: '🌸', ocean: '🌊', brutalist: '🧱', neobrutalist: '⚡' };
+      const themeGrid = Object.entries(themes).map(([k, t]) => `<div class="theme-dot ${currentTheme === k ? 'sel' : ''}" style="background:${t.c}" onclick="pickTheme('${k}')" title="${t.l}"><span style="font-size:22px">${themeIcons[k]}</span></div>`).join('');
 
       const memberList = Object.entries(members).map(([uid, m]) => `
     <div class="member-item">
@@ -1948,7 +1969,6 @@
       await db.ref('families/' + familyId + '/records/' + ownerUid + '/' + rid).set({
         date, year, note, status: 'hutang', finishDate: null, createdAt: Date.now()
       });
-      logActivity(`menambah hutang baru untuk ${members[ownerUid]?.name} (${date})`);
       toast('✅ Hutang berhasil dicatat!');
       setTab('riwayat');
     }
@@ -1966,7 +1986,6 @@
     async function doFinish(uid, rid) {
       const fd = document.getElementById('finish-date').value;
       await db.ref('families/' + familyId + '/records/' + uid + '/' + rid).update({ status: 'done', finishDate: fd });
-      logActivity(`melunasi hutang ${members[uid]?.name} (${fd})`);
       closeModal();
       toast('🎉 Alhamdulillah, lunas!');
     }
@@ -2004,7 +2023,6 @@
       const date = document.getElementById('e-date').value;
       const note = document.getElementById('e-note').value;
       await db.ref('families/' + familyId + '/records/' + uid + '/' + rid).update({ date, note });
-      logActivity(`mengubah data hutang ${members[uid]?.name}`);
       closeModal();
       toast('✅ Data diperbarui!');
     }
@@ -2017,7 +2035,6 @@
         ? { status: 'hutang', finishDate: null, note }
         : { status: 'done', finishDate, note };
       await db.ref('families/' + familyId + '/records/' + uid + '/' + rid).update(update);
-      logActivity(status === 'hutang' ? `mengembalikan data ${members[uid]?.name} ke hutang` : `mengubah data lunas ${members[uid]?.name}`);
       closeModal();
       toast('✅ Data diperbarui!');
     }
@@ -2034,7 +2051,6 @@
 
     async function doDelete(uid, rid) {
       await db.ref('families/' + familyId + '/records/' + uid + '/' + rid).remove();
-      logActivity(`menghapus data hutang ${members[uid]?.name}`);
       closeModal();
       toast('🗑 Data dihapus');
     }
@@ -2080,7 +2096,6 @@
         };
       }
       await db.ref().update(updates);
-      logActivity(`catat massal ${count} hutang untuk ${members[ownerUid]?.name}`);
       closeModal();
       toast(`✅ ${count} hutang berhasil dicatat!`);
       setTab('riwayat');
@@ -2168,7 +2183,6 @@
     async function doKick(uid) {
       await db.ref('families/' + familyId + '/members/' + uid).remove();
       await db.ref('users/' + uid + '/familyId').remove();
-      logActivity(`mengeluarkan ${members[uid]?.name} dari keluarga`);
       closeModal();
       toast('✅ Anggota dikeluarkan');
     }
@@ -2220,7 +2234,6 @@
       await db.ref('families/' + familyId + '/members/' + me.uid + '/name').set(name);
       myProfile.name = name;
       document.getElementById('hdr-user-btn').textContent = '👤 ' + name;
-      logActivity('mengubah nama profil ke: ' + name);
       closeModal();
       toast('✅ Nama diperbarui!');
     }
@@ -2359,7 +2372,6 @@
         const rid = db.ref('families/' + familyId + '/records/' + item.uid).push().key;
         await db.ref('families/' + familyId + '/records/' + item.uid + '/' + rid).set(item.record);
       }
-      logActivity(`mengimpor ${items.length} data dari Excel`);
       toast('✅ Import selesai! ' + items.length + ' data berhasil ditambahkan');
       setTab('riwayat');
     }
@@ -2390,15 +2402,6 @@
     <button class="btn btn-p" style="margin-top:8px" onclick="closeModal();openInvite()">🔗 Undang Anggota</button>
     <button class="btn btn-outline" style="margin-top:8px" onclick="signOut()">🔒 Keluar Akun</button>
     <button class="btn btn-outline" onclick="closeModal()">Tutup</button>`);
-    }
-
-    // ======================================================
-    // ACTIVITY LOG
-    // ======================================================
-    function logActivity(action) {
-      db.ref('families/' + familyId + '/activities').push({
-        user: myProfile.name, action, time: Date.now()
-      });
     }
 
     // ======================================================
