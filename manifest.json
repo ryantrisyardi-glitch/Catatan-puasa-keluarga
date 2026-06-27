@@ -2,7 +2,7 @@
   "name": "Hutang Puasa Family",
   "short_name": "Hutang Puasa",
   "description": "Catat & kontrol qadha puasa keluarga bersama",
-  "start_url": "./index_hutang_puasa.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

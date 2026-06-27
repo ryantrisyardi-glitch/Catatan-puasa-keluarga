@@ -4,7 +4,7 @@
 
 const CACHE_NAME = 'hutang-puasa-v1';
 const APP_SHELL = [
-  './index_hutang_puasa.html',
+  './index.html',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
