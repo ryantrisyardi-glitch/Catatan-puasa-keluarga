@@ -1417,6 +1417,11 @@
 
     // listeners to detach
     let _membersRef = null, _recordsRef = null;
+    let _feedbackRef = null, _allFeedbackRef = null;
+    let myFeedbackList = {};
+    let allFeedbackList = {};
+    const APP_SUPERADMIN_EMAIL = 'ryan.trisyardi@gmail.com';
+    const SAWERIA_URL = 'https://saweria.co/ryantrisyardi';
 
     // ======================================================
     // INIT — AUTH STATE
@@ -1615,6 +1620,9 @@
       // background chat listener
       startBgChat();
 
+      // realtime feedback (kritik & saran)
+      startFeedbackListeners();
+
       renderContent();
     }
 
@@ -1622,6 +1630,7 @@
       if (_recordsRef) _recordsRef.off();
       if (_membersRef) _membersRef.off();
       detachChat();
+      detachFeedback();
     }
 
     // ======================================================
@@ -2018,7 +2027,28 @@
       <button class="btn btn-red" style="margin-top:8px" onclick="leaveFamily()">🚪 Keluar dari Keluarga</button>
       `}
       <button class="btn btn-outline" style="margin-top:8px" onclick="signOut()">🔒 Keluar Akun</button>
-    </div>`;
+    </div>
+    <div class="card">
+      <h4>☕ Dukung Pengembang</h4>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:12px">Aplikasi ini gratis & dikembangkan sendiri. Kalau merasa terbantu, yuk traktir kopi buat pengembangnya lewat Saweria 🙏</div>
+      <button class="btn btn-p" onclick="window.open('${SAWERIA_URL}','_blank')">☕ Saweria untuk Pengembang</button>
+    </div>
+    <div class="card">
+      <h4>💬 Kritik &amp; Saran</h4>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:10px">Punya masukan, bug yang ditemukan, atau ide fitur? Kirim di sini. Kritik/saran kamu hanya bisa dilihat oleh kamu sendiri dan admin aplikasi.</div>
+      <textarea id="feedback-text" placeholder="Tulis kritik atau saran kamu di sini..." style="width:100%;padding:10px;border:1.5px solid var(--bdr);border-radius:9px;font-family:inherit;font-size:13px;background:var(--inp);color:var(--text);height:80px;resize:none;margin-bottom:8px"></textarea>
+      <button class="btn btn-p" onclick="submitFeedback()">📨 Kirim</button>
+      <div style="margin-top:14px">
+        <div style="font-weight:700;font-size:12px;color:var(--sub);margin-bottom:8px">📜 Riwayat Kritik/Saran Saya</div>
+        <div id="my-feedback-history">${renderMyFeedbackHistory()}</div>
+      </div>
+    </div>
+    ${me.email === APP_SUPERADMIN_EMAIL ? `
+    <div class="card">
+      <h4>🛡️ Semua Kritik &amp; Saran (Superadmin)</h4>
+      <div style="font-size:12px;color:var(--sub);margin-bottom:10px">Hanya kamu yang bisa melihat daftar ini, berisi kritik/saran dari seluruh pengguna aplikasi.</div>
+      <div id="all-feedback-list">${renderAllFeedbackList()}</div>
+    </div>` : ''}`;
     }
 
     // ======================================================
@@ -2458,6 +2488,88 @@
     }
 
     function setSort(mode) { sortMode = mode; renderContent(); }
+
+    // ======================================================
+    // KRITIK & SARAN (FEEDBACK)
+    // ======================================================
+    function startFeedbackListeners() {
+      // feedback milik saya sendiri: /feedback/{uid}/{fid}
+      if (_feedbackRef) _feedbackRef.off();
+      _feedbackRef = db.ref('feedback/' + me.uid);
+      _feedbackRef.on('value', snap => {
+        myFeedbackList = snap.val() || {};
+        const el = document.getElementById('my-feedback-history');
+        if (el) el.innerHTML = renderMyFeedbackHistory();
+      });
+
+      // superadmin aplikasi: lihat semua feedback semua user
+      if (me.email === APP_SUPERADMIN_EMAIL) {
+        if (_allFeedbackRef) _allFeedbackRef.off();
+        _allFeedbackRef = db.ref('feedback');
+        _allFeedbackRef.on('value', snap => {
+          allFeedbackList = snap.val() || {};
+          const el = document.getElementById('all-feedback-list');
+          if (el) el.innerHTML = renderAllFeedbackList();
+        });
+      }
+    }
+
+    function detachFeedback() {
+      if (_feedbackRef) _feedbackRef.off();
+      if (_allFeedbackRef) _allFeedbackRef.off();
+    }
+
+    function getKepalaKeluargaName() {
+      if (!members) return '-';
+      const head = Object.values(members).find(m => m.role === 'superadmin');
+      return head ? head.name : '-';
+    }
+
+    async function submitFeedback() {
+      const txt = v('feedback-text');
+      if (!txt) { toast('Tulis dulu kritik/saran kamu!'); return; }
+      const fid = db.ref('feedback/' + me.uid).push().key;
+      await db.ref('feedback/' + me.uid + '/' + fid).set({
+        uid: me.uid,
+        email: me.email,
+        userName: myProfile ? myProfile.name : (me.email || 'Pengguna'),
+        familyName: familyData ? familyData.name : '-',
+        kepalaKeluarga: getKepalaKeluargaName(),
+        isKepalaKeluarga: !!isSuperAdmin,
+        text: txt,
+        createdAt: Date.now()
+      });
+      document.getElementById('feedback-text').value = '';
+      toast('✅ Terkirim! Terima kasih atas masukannya 🙏');
+    }
+
+    function renderMyFeedbackHistory() {
+      const list = Object.entries(myFeedbackList || {}).sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
+      if (!list.length) return `<div style="font-size:12px;color:var(--sub)">Belum ada kritik/saran yang kamu kirim.</div>`;
+      return list.map(([id, f]) => `
+    <div style="padding:10px;border:1px solid var(--bdr);border-radius:9px;margin-bottom:8px;background:var(--inp)">
+      <div style="font-size:11px;color:var(--sub);margin-bottom:4px">${new Date(f.createdAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+      <div style="font-size:13px;white-space:pre-wrap">${escHtml(f.text)}</div>
+    </div>`).join('');
+    }
+
+    function renderAllFeedbackList() {
+      const all = [];
+      Object.entries(allFeedbackList || {}).forEach(([uid, byUser]) => {
+        Object.entries(byUser || {}).forEach(([fid, f]) => all.push(f));
+      });
+      all.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      if (!all.length) return `<div style="font-size:12px;color:var(--sub)">Belum ada kritik/saran masuk.</div>`;
+      return all.map(f => `
+    <div style="padding:10px;border:1px solid var(--bdr);border-radius:9px;margin-bottom:8px;background:var(--inp)">
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+        <div style="font-weight:700;font-size:12px">${escHtml(f.userName || '-')}${f.isKepalaKeluarga ? ' 👑' : ''}</div>
+        <div style="font-size:11px;color:var(--sub)">${new Date(f.createdAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-bottom:6px">Keluarga: ${escHtml(f.familyName || '-')} · Kepala Keluarga: ${escHtml(f.kepalaKeluarga || '-')} · ${escHtml(f.email || '-')}</div>
+      <div style="font-size:13px;white-space:pre-wrap">${escHtml(f.text)}</div>
+    </div>`).join('');
+    }
 
     // ======================================================
     // USER MENU
