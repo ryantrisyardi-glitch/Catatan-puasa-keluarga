@@ -149,20 +149,20 @@
     }
 
     [data-theme="neobrutalist"] {
-      --p: #D7263D;
-      --pm: #E8473F;
-      --pd: #A11D2E;
-      --pl: #FBE3DD;
-      --h1: #A11D2E;
-      --h2: #D7263D;
-      --h3: #E8473F;
+      --p: #E2684D;
+      --pm: #EC8768;
+      --pd: #B84F3A;
+      --pl: #FBEAE1;
+      --h1: #B84F3A;
+      --h2: #E2684D;
+      --h3: #EC8768;
       --bg: #FFF8E7;
       --card: #FFFFFF;
       --text: #111111;
       --sub: #6B5D4F;
       --bdr: #111111;
       --inp: #FFFDF5;
-      --red: #D7263D;
+      --red: #D6584A;
       --blue: #1E4FA3;
       --amber: #C8932B;
       --amber-l: #FBF0D2;
@@ -1062,10 +1062,25 @@
       cursor: pointer;
       border: 3px solid transparent;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
-      transition: transform .2s
+      gap: 5px;
+      padding: 6px 4px;
+      transition: transform .15s
+    }
+
+    .theme-dot:active {
+      transform: scale(.94)
+    }
+
+    .theme-dot-label {
+      font-size: 9.5px;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      line-height: 1.15;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, .35)
     }
 
     .theme-dot.sel {
@@ -1989,9 +2004,23 @@
     // ---- LOG (superadmin only) ----
     // ---- SETTINGS ----
     function renderSettings() {
-      const themes = { green: { l: 'Hijau 🌿', c: 'linear-gradient(135deg,#085041,#1D9E75)' }, dark: { l: 'Gelap 🌙', c: 'linear-gradient(135deg,#0a1a14,#1D9E75)' }, pink: { l: 'Pink 🌸', c: 'linear-gradient(135deg,#9a3261,#e05f96)' }, ocean: { l: 'Laut 🌊', c: 'linear-gradient(135deg,#0e3d6e,#2d84d4)' }, brutalist: { l: 'Brutalist 🧱', c: 'linear-gradient(135deg,#000000,#2b2b2b)' }, neobrutalist: { l: 'Neo-Brutalist ⚡', c: 'linear-gradient(135deg,#111111,#D7263D)' } };
-      const themeIcons = { green: '🌿', dark: '🌙', pink: '🌸', ocean: '🌊', brutalist: '🧱', neobrutalist: '⚡' };
-      const themeGrid = Object.entries(themes).map(([k, t]) => `<div class="theme-dot ${currentTheme === k ? 'sel' : ''}" style="background:${t.c}" onclick="pickTheme('${k}')" title="${t.l}"><span style="font-size:22px">${themeIcons[k]}</span></div>`).join('');
+      const themes = {
+        green: { l: 'Alam (Hijau)', c: 'linear-gradient(135deg,#085041,#1D9E75)' },
+        dark: { l: 'Malam (Gelap)', c: 'linear-gradient(135deg,#0a1a14,#1D9E75)' },
+        pink: { l: 'Sakura (Pink)', c: 'linear-gradient(135deg,#9a3261,#e05f96)' },
+        ocean: { l: 'Laut (Biru)', c: 'linear-gradient(135deg,#0e3d6e,#2d84d4)' },
+        brutalist: { l: 'Monokrom (Brutalist)', c: 'linear-gradient(135deg,#000000,#2b2b2b)' },
+        neobrutalist: { l: 'Senja (Terakota)', c: 'linear-gradient(135deg,#111111,#E2684D)' }
+      };
+      const themeIcons = {
+        green: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><path d="M12 21c-4-1.5-7-5-7-9.5C5 6 8 3 12 3s7 3 7 8.5c0 4.5-3 8-7 9.5z" fill="#fff" opacity=".95"/><path d="M12 21V9" stroke="#1D9E75" stroke-width="1.6" stroke-linecap="round"/><path d="M12 13c-2-2-4-2.3-5.5-1.3" stroke="#1D9E75" stroke-width="1.4" stroke-linecap="round"/><path d="M12 16c2-1.7 3.6-1.6 5-.6" stroke="#1D9E75" stroke-width="1.4" stroke-linecap="round"/></svg>`,
+        dark: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 1 0 10.5 10.5z" fill="#fff"/><circle cx="16.5" cy="6.5" r="0.9" fill="#fff" opacity=".8"/><circle cx="19" cy="9.5" r="0.6" fill="#fff" opacity=".7"/></svg>`,
+        pink: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><g fill="#fff"><circle cx="12" cy="7" r="3"/><circle cx="17" cy="12" r="3"/><circle cx="12" cy="17" r="3"/><circle cx="7" cy="12" r="3"/></g><circle cx="12" cy="12" r="2.2" fill="#e05f96"/></svg>`,
+        ocean: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><path d="M3 10c1.5-1.3 3-1.3 4.5 0s3 1.3 4.5 0 3-1.3 4.5 0 3 1.3 4.5 0" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><path d="M3 15c1.5-1.3 3-1.3 4.5 0s3 1.3 4.5 0 3-1.3 4.5 0 3 1.3 4.5 0" stroke="#fff" stroke-width="1.7" stroke-linecap="round" opacity=".7"/><path d="M3 19.5c1.5-1.3 3-1.3 4.5 0s3 1.3 4.5 0 3-1.3 4.5 0 3 1.3 4.5 0" stroke="#fff" stroke-width="1.7" stroke-linecap="round" opacity=".4"/></svg>`,
+        brutalist: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><rect x="4" y="4" width="7" height="7" fill="#fff"/><rect x="13" y="4" width="7" height="7" fill="#fff" opacity=".55"/><rect x="4" y="13" width="7" height="7" fill="#fff" opacity=".55"/><rect x="13" y="13" width="7" height="7" fill="#fff"/></svg>`,
+        neobrutalist: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none"><circle cx="12" cy="12" r="5.5" fill="#fff"/><g stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M12 2.5v3"/><path d="M12 18.5v3"/><path d="M2.5 12h3"/><path d="M18.5 12h3"/><path d="M5 5l2.1 2.1"/><path d="M16.9 16.9L19 19"/><path d="M19 5l-2.1 2.1"/><path d="M7.1 16.9L5 19"/></g></svg>`
+      };
+      const themeGrid = Object.entries(themes).map(([k, t]) => `<div class="theme-dot ${currentTheme === k ? 'sel' : ''}" style="background:${t.c}" onclick="pickTheme('${k}')" title="${t.l}">${themeIcons[k]}<span class="theme-dot-label">${t.l}</span></div>`).join('');
 
       const memberList = Object.entries(members).map(([uid, m]) => `
     <div class="member-item">
